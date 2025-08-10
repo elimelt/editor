@@ -500,14 +500,16 @@ export function App(): JSX.Element {
               {openState === 'loaded' && (
               <Paper withBorder p="md" radius="md" className="editor-card">
                 <Stack className="editor-stack">
-              {detectedLanguage === 'markdown' && (
-                <Group justify="flex-end">
-                  <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
-                </Group>
-              )}
               {openState === 'loaded' && !!fileName && (
-                <Group justify="space-between" className="tree-header">
+                <Group justify="space-between" align="center" className="tree-header">
                   <strong className="tree-title">{fileName}</strong>
+                  {detectedLanguage === 'markdown' && (
+                    <Switch
+                      checked={showPreview}
+                      onChange={(e) => setShowPreview(e.currentTarget.checked)}
+                      label="Split preview"
+                    />
+                  )}
                 </Group>
               )}
               <div className="editor-host">
