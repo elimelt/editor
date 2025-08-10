@@ -317,9 +317,9 @@ export function App(): JSX.Element {
                         setOwner(r.owner);
                         setRepo(r.name);
                         setBranch(r.defaultBranch || 'main');
-                        setPath('README.md');
                         setStatusKind('info');
                         setStatus(`Selected ${r.fullName}`);
+                        setShowTree(true);
                       }}
                       title={r.desc || r.fullName}
                     >
@@ -351,8 +351,8 @@ export function App(): JSX.Element {
         </Group>
       </Paper>
 
-      {openState === 'loaded' && (
-        <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
+      {(owner && repo) && (showTree || openState === 'loaded') && (
+        <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''} ${openState !== 'loaded' ? 'no-editor' : ''}`}>
           <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
             {(styles) => (
               <div style={styles}>
@@ -372,6 +372,7 @@ export function App(): JSX.Element {
               </div>
             )}
           </Transition>
+          {openState === 'loaded' && (
           <Paper withBorder p="md" radius="md" className="editor-card">
             <Stack>
               <TextInput label="Commit message" id="commit" value={commitMsg} onChange={(e) => setCommitMsg(e.currentTarget.value)} placeholder="e.g. Update README" />
@@ -395,10 +396,11 @@ export function App(): JSX.Element {
               </Group>
             </Stack>
           </Paper>
-          <Transition mounted={detectedLanguage === 'markdown' && showPreview} transition="fade" duration={140} timingFunction="ease-out">
+          )}
+          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="fade" duration={140} timingFunction="ease-out">
             {(styles) => (
               <div style={styles}>
-                {detectedLanguage === 'markdown' && showPreview && (
+                {openState === 'loaded' && detectedLanguage === 'markdown' && showPreview && (
                   <Paper withBorder p="md" radius="md" className="preview-card">
                     <ScrollArea h={600} type="auto">
                       <MarkdownPreview markdown={content} />
