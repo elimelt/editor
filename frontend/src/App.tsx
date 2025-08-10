@@ -72,6 +72,80 @@ export function App(): JSX.Element {
 
   // user refresh handled by useEditorController
 
+  // Sync repo/file selection with URL for shareable links and browser history
+  const isRestoringFromHistoryRef = useRef(false);
+
+  // Parse URL on first mount and restore state
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const o = params.get('owner') || '';
+    const r = params.get('repo') || '';
+    const b = params.get('branch') || 'main';
+    const p = params.get('path') || '';
+    if (o && r) {
+      isRestoringFromHistoryRef.current = true;
+      setOwner(o);
+      setRepo(r);
+      setBranch(b || 'main');
+      if (p) {
+        setPath(p);
+        void onOpen(p);
+      } else {
+        // Repo context without a file
+        setOpenState('loaded');
+      }
+      // Clear the flag after scheduling React state updates
+      queueMicrotask(() => { isRestoringFromHistoryRef.current = false; });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Update URL when selection changes (owner/repo/branch/path)
+  useEffect(() => {
+    if (isRestoringFromHistoryRef.current) return;
+    if (!owner || !repo) return;
+    const params = new URLSearchParams();
+    params.set('owner', owner);
+    params.set('repo', repo);
+    if (branch) params.set('branch', branch);
+    if (path) params.set('path', path);
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+    if (nextUrl !== currentUrl) {
+      window.history.pushState(null, '', nextUrl);
+    }
+  }, [owner, repo, branch, path]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const onPop = () => {
+      const params = new URLSearchParams(window.location.search);
+      const o = params.get('owner') || '';
+      const r = params.get('repo') || '';
+      const b = params.get('branch') || 'main';
+      const p = params.get('path') || '';
+      isRestoringFromHistoryRef.current = true;
+      setOwner(o);
+      setRepo(r);
+      setBranch(b || 'main');
+      setPath(p);
+      if (o && r && p) {
+        void onOpen(p);
+      } else if (o && r) {
+        setOpenState('loaded');
+        setContent('');
+        setSha('');
+      } else {
+        setOpenState('idle');
+        setContent('');
+        setSha(null);
+      }
+      queueMicrotask(() => { isRestoringFromHistoryRef.current = false; });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [onOpen, setOwner, setRepo, setBranch, setPath, setOpenState, setContent, setSha]);
+
   // Reset file-specific UI when repo context changes
   useEffect(() => {
     setConfirmSaveOpen(false);
