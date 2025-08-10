@@ -212,6 +212,10 @@ body {
 /* Editor panel fill */
 .editor-stack { height: 100%; }
 .editor-host { flex: 1; min-height: 0; }
+.editor-split { display: grid; grid-template-rows: 1fr; gap: 12px; min-height: 0; flex: 1; }
+.editor-split.with-preview { grid-template-rows: 1fr 1fr; }
+.preview-inner { min-height: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: color-mix(in oklab, var(--panel) 85%, transparent); }
+.preview-scroll { height: 100%; }
 .editor-layout.tree-hidden .span-full { grid-column: 1 / -1; }
 .tree-list { display: grid; gap: 2px; }
 .tree-branch { }

@@ -467,15 +467,24 @@ export function App(): JSX.Element {
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
                 </Group>
               )}
-              <div className="editor-host">
-                <CodeEditor
-                  value={content}
-                  onChange={setContent}
-                  language={detectedLanguage}
-                  softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
-                  height={undefined as any}
-                  wrapColumn={96}
-                />
+              <div className={`editor-split ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
+                <div className="editor-host">
+                  <CodeEditor
+                    value={content}
+                    onChange={setContent}
+                    language={detectedLanguage}
+                    softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+                    height={undefined as any}
+                    wrapColumn={96}
+                  />
+                </div>
+                {detectedLanguage === 'markdown' && showPreview && (
+                  <div className="preview-inner">
+                    <ScrollArea className="preview-scroll" type="auto">
+                      <MarkdownPreview markdown={content} />
+                    </ScrollArea>
+                  </div>
+                )}
               </div>
               <Group>
                 <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
@@ -484,9 +493,6 @@ export function App(): JSX.Element {
               </Group>
             </Stack>
           </Paper>
-          )}
-          {openState === 'loaded' && detectedLanguage === 'markdown' && showPreview && (
-            <></>
           )}
         </div>
       )}
