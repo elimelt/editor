@@ -11,6 +11,7 @@ import {
   HttpError,
     listEditableRepos,
 } from '@/api/github';
+  import { CodeEditor } from '@/components/CodeEditor';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -36,6 +37,19 @@ export function App(): JSX.Element {
   const [repoQuery, setRepoQuery] = useState('');
 
   const dirty = useMemo(() => openState === 'loaded' && saveState !== 'loading', [openState, saveState]);
+  const detectedLanguage = useMemo<
+    'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python' | 'text'
+  >(() => {
+    const lower = path.toLowerCase();
+    if (lower.endsWith('.md') || lower.endsWith('.markdown')) return 'markdown';
+    if (lower.endsWith('.ts') || lower.endsWith('.tsx')) return 'typescript';
+    if (lower.endsWith('.js') || lower.endsWith('.jsx')) return 'javascript';
+    if (lower.endsWith('.json')) return 'json';
+    if (lower.endsWith('.html') || lower.endsWith('.htm')) return 'html';
+    if (lower.endsWith('.css')) return 'css';
+    if (lower.endsWith('.py')) return 'python';
+    return 'text';
+  }, [path]);
 
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
@@ -288,11 +302,11 @@ export function App(): JSX.Element {
             <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
           </div>
           <div className="section">
-            <textarea
-              className="textarea"
+            <CodeEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="File content will appear here..."
+              onChange={setContent}
+              language={detectedLanguage}
+              softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
             />
           </div>
           <div className="row section">
