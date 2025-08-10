@@ -14,7 +14,7 @@ import {
 import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal } from '@mantine/core';
+import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal, Transition } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -68,6 +68,15 @@ export function App(): JSX.Element {
     const token = readAccessTokenFromHashOrSession();
     setTokenPresent(Boolean(token));
   }, []);
+
+  // Persist file tree visibility
+  useEffect(() => {
+    const stored = localStorage.getItem('ui_showTree');
+    if (stored != null) setShowTree(stored === '1' || stored === 'true');
+  }, []);
+  useEffect(() => {
+    localStorage.setItem('ui_showTree', showTree ? '1' : '0');
+  }, [showTree]);
 
   const refreshUser = useCallback(async () => {
     if (!tokenPresent) {
@@ -344,21 +353,25 @@ export function App(): JSX.Element {
 
       {openState === 'loaded' && (
         <div className={`section ${showTree ? 'editor-layout' : 'editor-only'} ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
-          {showTree && (
-            <Paper withBorder p="md" radius="md" className="filetree">
-              <FileTree
-                owner={owner}
-                repo={repo}
-                branch={branch}
-                onSelectFile={(p) => {
-                  setPath(p);
-                  void onOpen(p);
-                }}
-                onCreate={() => setCreateOpen(true)}
-                onDelete={(p) => setDeleteTarget(p)}
-              />
-            </Paper>
-          )}
+          <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
+            {(styles) => (
+              <div style={styles}>
+                <Paper withBorder p="md" radius="md" className="filetree">
+                  <FileTree
+                    owner={owner}
+                    repo={repo}
+                    branch={branch}
+                    onSelectFile={(p) => {
+                      setPath(p);
+                      void onOpen(p);
+                    }}
+                    onCreate={() => setCreateOpen(true)}
+                    onDelete={(p) => setDeleteTarget(p)}
+                  />
+                </Paper>
+              </div>
+            )}
+          </Transition>
           <Paper withBorder p="md" radius="md" className="editor-card">
             <Stack>
               <TextInput label="Commit message" id="commit" value={commitMsg} onChange={(e) => setCommitMsg(e.currentTarget.value)} placeholder="e.g. Update README" />
@@ -438,6 +451,9 @@ export function App(): JSX.Element {
       <CommandPalette
         opened={paletteOpen}
         onClose={() => setPaletteOpen(false)}
+        owner={owner}
+        repo={repo}
+        branch={branch}
         onOpenFile={(f) => {
           setOwner(f.owner);
           setRepo(f.repo);
@@ -451,6 +467,11 @@ export function App(): JSX.Element {
           setRepo(r.repo);
           setBranch('main');
           setPath('README.md');
+          setPaletteOpen(false);
+        }}
+        onOpenPath={(p) => {
+          setPath(p);
+          void onOpen(p);
           setPaletteOpen(false);
         }}
         onTogglePreview={() => setShowPreview((v) => !v)}
