@@ -381,14 +381,14 @@ export function App(): JSX.Element {
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
                 </Group>
               )}
-              <ScrollArea h={600} type="auto">
-                <CodeEditor
-                  value={content}
-                  onChange={setContent}
-                  language={detectedLanguage}
-                  softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
-                />
-              </ScrollArea>
+              <CodeEditor
+                value={content}
+                onChange={setContent}
+                language={detectedLanguage}
+                softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+                height={600}
+                wrapColumn={96}
+              />
               <Group>
                 <Button onClick={onSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
                   {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}

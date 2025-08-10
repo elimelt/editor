@@ -20,9 +20,11 @@ type Props = {
   language: 'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python' | 'text';
   readOnly?: boolean;
   softWrap?: boolean;
+  height?: number | string;
+  wrapColumn?: number; // max characters per line when wrapping (softWrap)
 };
 
-export function CodeEditor({ value, onChange, language, readOnly = false, softWrap = false }: Props): JSX.Element {
+export function CodeEditor({ value, onChange, language, readOnly = false, softWrap = false, height = '70vh', wrapColumn = 96 }: Props): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
@@ -72,6 +74,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     if (!hostRef.current) return;
     const languageCompartment = new Compartment();
     const flagsCompartment = new Compartment();
+    const themeCompartment = new Compartment();
     const updateListener = EditorView.updateListener.of((v) => {
       if (v.docChanged) {
         onChange(v.state.doc.toString());
@@ -87,6 +90,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
           readOnly ? EditorState.readOnly.of(true) : [],
           softWrap ? EditorView.lineWrapping : [],
         ]),
+        themeCompartment.of(themeExtension),
         updateListener,
       ],
     });
@@ -95,6 +99,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     // Store compartments on the view instance for reconfiguration
     (view as any)._languageCompartment = languageCompartment;
     (view as any)._flagsCompartment = flagsCompartment;
+    (view as any)._themeCompartment = themeCompartment;
     return () => {
       view.destroy();
       viewRef.current = null;
@@ -127,12 +132,32 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     }
   }, [value]);
 
-  return (
-    <div
-      style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', minHeight: 360 }}
-      ref={hostRef}
-    />
-  );
+  // Editor theme to constrain height and optional wrap column for soft wrap
+  const themeExtension = useMemo<Extension>(() => EditorView.theme({
+    '&': {
+      height: typeof height === 'number' ? `${height}px` : String(height),
+      border: '1px solid var(--border)',
+      borderRadius: '8px',
+    },
+    '.cm-scroller': {
+      overflow: 'auto',
+    },
+    '.cm-content': softWrap ? {
+      maxWidth: `${wrapColumn}ch`,
+      margin: '0 auto',
+    } : {},
+  }), [height, softWrap, wrapColumn]);
+
+  // Attach theme extension
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const themeCompartment: Compartment | undefined = (view as any)._themeCompartment;
+    if (!themeCompartment) return;
+    view.dispatch({ effects: themeCompartment.reconfigure(themeExtension) });
+  }, [themeExtension]);
+
+  return <div ref={hostRef} />;
 }
 
 
