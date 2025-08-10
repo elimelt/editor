@@ -18,18 +18,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Docker image (local)
-        run: |
-          docker build -t editor-auth-server:${{ github.sha }} -f Dockerfile.server .
-          docker save editor-auth-server:${{ github.sha }} -o auth-server-image.tar
-
-      - name: Copy image and env to server
+      - name: Copy sources to server (server/, Dockerfile.server)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "./auth-server-image.tar"
+          source: "./server/**,./Dockerfile.server"
           target: ${{ secrets.SERVER_WORKDIR }}
 
       - name: Deploy via SSH (create/update Swarm service)
@@ -53,8 +48,9 @@ jobs:
             EOF
             echo "Ensuring network exists: prod_swecc-network"
             docker network inspect prod_swecc-network >/dev/null 2>&1 || { echo "Missing network prod_swecc-network" >&2; exit 1; }
-            echo "Loading image on server"
-            docker load -i "$WORKDIR/auth-server-image.tar"
+            echo "Building image on server"
+            cd "$WORKDIR"
+            docker build -t "$IMAGE" -f Dockerfile.server .
             echo "Create or update auth-server service"
             if docker service ls --format '{{.Name}}' | grep -q '^auth-server$'; then
               docker service update \
