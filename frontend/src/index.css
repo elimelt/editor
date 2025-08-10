@@ -30,7 +30,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body, #root { height: auto; }
+html, body, #root { height: 100%; }
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
@@ -38,6 +38,10 @@ body {
     "Segoe UI Emoji";
   color: var(--text);
   background: linear-gradient(180deg, var(--bg), #0b0d12 60%);
+}
+
+.html {
+  height: auto;
 }
 
 .container {
