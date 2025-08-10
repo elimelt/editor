@@ -64,7 +64,7 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile, onC
   }, [root, filter]);
 
   return (
-    <div>
+    <div className="tree-root">
       <Group justify="space-between" className="tree-header">
         <strong className="tree-title">Files</strong>
         <Group gap={6} className="tree-toolbar">

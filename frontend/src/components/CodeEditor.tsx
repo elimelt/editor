@@ -230,7 +230,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     view.dispatch({ effects: themeCompartment.reconfigure(themeExtension) });
   }, [themeExtension]);
 
-  return <div ref={hostRef} />;
+  return <div ref={hostRef} className="codeeditor-host" />;
 }
 
 
