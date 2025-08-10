@@ -203,8 +203,11 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     },
     '.cm-content': softWrap && typeof wrapColumn === 'number' ? {
       maxWidth: `${wrapColumn}ch`,
-      margin: '0 auto',
+      marginInline: 'auto',
     } : {},
+    '.cm-line': {
+      textIndent: '0',
+    },
   }), [height, softWrap, wrapColumn]);
 
   // Attach theme extension

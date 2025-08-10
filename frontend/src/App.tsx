@@ -477,24 +477,26 @@ export function App(): JSX.Element {
         <div className="section">
           <Grid gutter="md" align="stretch">
             {/* File tree column */}
-            <Grid.Col span={{ base: 12, md: layoutMode === 'mode-tree' ? 5 : 0, lg: layoutMode === 'mode-tree' ? 4 : 0, xl: layoutMode === 'mode-tree' ? 3 : 0 }}>
-              <Paper withBorder p="md" radius="md" className="filetree">
-                <FileTree
-                  owner={owner}
-                  repo={repo}
-                  branch={branch}
-                  onSelectFile={(p) => {
-                    setPath(p);
-                    void onOpen(p);
-                  }}
-                  onCreate={() => setCreateOpen(true)}
-                  onDelete={(p) => setDeleteTarget(p)}
-                />
-              </Paper>
-            </Grid.Col>
+            {layoutMode === 'mode-tree' && (
+              <Grid.Col span={{ base: 12, md: 5, lg: 4, xl: 3 }}>
+                <Paper withBorder p="md" radius="md" className="filetree">
+                  <FileTree
+                    owner={owner}
+                    repo={repo}
+                    branch={branch}
+                    onSelectFile={(p) => {
+                      setPath(p);
+                      void onOpen(p);
+                    }}
+                    onCreate={() => setCreateOpen(true)}
+                    onDelete={(p) => setDeleteTarget(p)}
+                  />
+                </Paper>
+              </Grid.Col>
+            )}
 
             {/* Editor column */}
-            <Grid.Col span={{ base: 12, md: openState === 'loaded' ? 12 : 0, lg: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : 8) : 0, xl: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : 9) : 0 }}>
+            <Grid.Col span={{ base: 12, md: openState === 'loaded' ? 12 : 0, lg: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : layoutMode === 'mode-tree' ? 8 : 12) : 0, xl: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : layoutMode === 'mode-tree' ? 9 : 12) : 0 }}>
               {openState === 'loaded' && (
               <Paper withBorder p="md" radius="md" className="editor-card">
                 <Stack className="editor-stack">
@@ -529,7 +531,8 @@ export function App(): JSX.Element {
             </Grid.Col>
 
             {/* Preview column */}
-            <Grid.Col span={{ base: 12, md: 0, lg: layoutMode === 'mode-preview' && openState === 'loaded' ? 6 : 0 }}>
+            {(layoutMode === 'mode-preview' && openState === 'loaded') && (
+            <Grid.Col span={{ base: 12, md: 12, lg: 6, xl: 6 }}>
               {(layoutMode === 'mode-preview' && openState === 'loaded') && (
               <Paper withBorder p="md" radius="md" className="preview-card">
                 <ScrollArea className="preview-scroll" type="auto">
@@ -538,6 +541,7 @@ export function App(): JSX.Element {
               </Paper>
               )}
             </Grid.Col>
+            )}
           </Grid>
         </div>
       )}
