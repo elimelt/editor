@@ -11,10 +11,8 @@ import {
   HttpError,
   listEditableRepos,
 } from '@/api/github';
-import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
-import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, Title, Divider, Switch, Stack, Badge, ScrollArea, Grid } from '@mantine/core';
+import { Badge, Button, Container, Grid, Group, Paper, ScrollArea, Stack, Switch, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -25,6 +23,18 @@ import { ConfirmSaveModal } from '@/components/app/ConfirmSaveModal';
 import { DeleteFileModal } from '@/components/app/DeleteFileModal';
 import { ShortcutHints } from '@/components/app/ShortcutHints';
 import { RepoPicker } from '@/components/app/RepoPicker';
+import { HeaderBar } from '@/components/app/HeaderBar';
+import { EditorPanel } from '@/components/app/EditorPanel';
+import { PreviewPanel } from '@/components/app/PreviewPanel';
+import { StatusBar } from '@/components/app/StatusBar';
+import { useWarnOnUnload } from '@/hooks/useWarnOnUnload';
+import { useModifierAndEditorFocus } from '@/hooks/useModifierAndEditorFocus';
+import { usePersistentBoolean } from '@/hooks/usePersistentBoolean';
+import { useLayoutMode } from '@/hooks/useLayoutMode';
+import { usePreviewGuards } from '@/hooks/usePreviewGuards';
+import { useGlobalShortcuts } from '@/hooks/useGlobalShortcuts';
+import { CodeEditor } from './components/CodeEditor';
+import { MarkdownPreview } from './components/MarkdownPreview';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -54,7 +64,7 @@ export function App(): JSX.Element {
 
   const [showPreview, setShowPreview] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [showTree, setShowTree] = useState(false);
+  const [showTree, setShowTree] = usePersistentBoolean('ui_showTree', false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newPath, setNewPath] = useState('');
@@ -62,31 +72,18 @@ export function App(): JSX.Element {
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const commitInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Subtle shortcut hints when Cmd/Ctrl is held outside the editor
-  const [modifierHeld, setModifierHeld] = useState(false);
-  const [focusInEditor, setFocusInEditor] = useState(false);
+  const { modifierHeld, focusInEditor } = useModifierAndEditorFocus();
 
   const fileName = useMemo(() => (path ? path.split('/').pop() || path : ''), [path]);
 
-  const layoutMode = useMemo(() => {
-    if (showTree) return 'mode-tree';
-    if (showPreview && detectedLanguage === 'markdown') return 'mode-preview';
-    return 'mode-editor-only';
-  }, [showTree, showPreview, detectedLanguage]);
+  const layoutMode = useLayoutMode(showTree, showPreview, detectedLanguage);
 
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
     setTokenPresent(Boolean(token));
   }, []);
 
-  // Persist file tree visibility
-  useEffect(() => {
-    const stored = localStorage.getItem('ui_showTree');
-    if (stored != null) setShowTree(stored === '1' || stored === 'true');
-  }, []);
-  useEffect(() => {
-    localStorage.setItem('ui_showTree', showTree ? '1' : '0');
-  }, [showTree]);
+  // (persist handled by usePersistentBoolean)
 
   const refreshUser = useCallback(async () => {
     if (!tokenPresent) {
@@ -137,12 +134,7 @@ export function App(): JSX.Element {
     }
   }, [owner, repo, branch]);
 
-  // Keep preview state consistent with file type and load state
-  useEffect(() => {
-    if (!(openState === 'loaded' && detectedLanguage === 'markdown')) {
-      setShowPreview(false);
-    }
-  }, [openState, detectedLanguage]);
+  usePreviewGuards(openState, detectedLanguage, setShowPreview);
 
   // Enforce allowed layouts: editor-only OR editor+tree OR editor+preview
   useEffect(() => {
@@ -280,117 +272,36 @@ export function App(): JSX.Element {
     setPath('');
   }, []);
 
-  useEffect(() => {
-    const beforeUnload = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', beforeUnload);
-    return () => window.removeEventListener('beforeunload', beforeUnload);
-  }, [dirty]);
+  useWarnOnUnload(dirty);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-        e.preventDefault();
-        openConfirmSave();
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
-        e.preventDefault();
-        setPaletteOpen(true);
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
-        e.preventDefault();
-        setPaletteOpen(true);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'p' || e.key === 'P')) {
-        e.preventDefault();
-        if (openState === 'loaded' && detectedLanguage === 'markdown') {
-          setShowPreview((v) => !v);
-        }
-      }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'v' || e.key === 'V')) {
-        e.preventDefault();
-        if (openState === 'loaded' && detectedLanguage === 'markdown') {
-          setShowPreview((v) => !v);
-        }
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
-        e.preventDefault();
-        setShowTree((v) => !v);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === ',') {
-        e.preventDefault();
-        setSettingsOpen(true);
-      }
-    };
-    window.addEventListener('keydown', onKey);
     const openSettings = () => setSettingsOpen(true);
     window.addEventListener('open-settings' as any, openSettings);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onSave, openConfirmSave, openState, detectedLanguage]);
-
-  // Detect modifier key hold and editor focus to show shortcut hints
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Meta' || e.key === 'Control') {
-        setModifierHeld(true);
-      }
-    };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Meta' || e.key === 'Control') {
-        setModifierHeld(false);
-      }
-      // If all keys released, clear state defensively
-      if (!e.ctrlKey && !e.metaKey) setModifierHeld(false);
-    };
-    const handleFocusChange = () => {
-      const active = document.activeElement as HTMLElement | null;
-      const inEditor = Boolean(active?.closest('.cm-editor'));
-      setFocusInEditor(inEditor);
-    };
-    window.addEventListener('keydown', handleKeyDown, { passive: true });
-    window.addEventListener('keyup', handleKeyUp, { passive: true });
-    document.addEventListener('focusin', handleFocusChange, { passive: true });
-    document.addEventListener('focusout', handleFocusChange, { passive: true });
-    // Initialize on mount
-    handleFocusChange();
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown as any);
-      window.removeEventListener('keyup', handleKeyUp as any);
-      document.removeEventListener('focusin', handleFocusChange as any);
-      document.removeEventListener('focusout', handleFocusChange as any);
-    };
+    return () => window.removeEventListener('open-settings' as any, openSettings as any);
   }, []);
+  useGlobalShortcuts({
+    onSave: openConfirmSave,
+    onOpenPalette: () => setPaletteOpen(true),
+    onTogglePreview: () => setShowPreview((v) => !v),
+    onToggleFiles: () => setShowTree((v) => !v),
+    onOpenSettings: () => setSettingsOpen(true),
+    isMarkdownPreviewAvailable: openState === 'loaded' && detectedLanguage === 'markdown',
+  });
+
+  // (modifier/focus handled by useModifierAndEditorFocus)
 
   return (
     <Container size="lg" py="lg">
-      <Paper withBorder p="md" radius="md" className="header">
-        <Group justify="space-between" wrap="wrap">
-          <Group gap="sm">
-            <Title order={2}>GitHub Editor</Title>
-            {openState === 'loaded' && (
-              <Button variant="light" onClick={() => setShowTree((v) => !v)} title="Toggle file tree (Cmd/Ctrl+B)">
-                {showTree ? 'Hide files' : 'Show files'}
-              </Button>
-            )}
-          </Group>
-          <Group>
-            <Button variant="light" onClick={() => setPaletteOpen(true)} title="Command palette (Cmd/Ctrl+K or Cmd/Ctrl+P)">Command palette</Button>
-            <Button variant="subtle" onClick={() => setSettingsOpen(true)} title="Settings (Cmd/Ctrl+,)" disabled={!user}>Settings</Button>
-            {user ? (
-              <>
-                <Badge variant="light" color="gray">{user.login}</Badge>
-                <Button variant="subtle" onClick={onLogout} title="Clear token">Logout</Button>
-              </>
-            ) : (
-              <Button onClick={loginRedirect}>Login with GitHub</Button>
-            )}
-          </Group>
-        </Group>
-      </Paper>
+      <HeaderBar
+        canToggleFiles={openState === 'loaded'}
+        showTree={showTree}
+        onToggleFiles={() => setShowTree((v) => !v)}
+        userLogin={user?.login ?? null}
+        onLogin={loginRedirect}
+        onLogout={onLogout}
+        onOpenPalette={() => setPaletteOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
 
       {/* spacing managed by Paper margins; removed hr to reduce visual clutter */}
 
@@ -465,58 +376,33 @@ export function App(): JSX.Element {
 
             {/* Editor column */}
             <Grid.Col span={{ base: 12, md: openState === 'loaded' ? 12 : 0, lg: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : layoutMode === 'mode-tree' ? 8 : 12) : 0, xl: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : layoutMode === 'mode-tree' ? 9 : 12) : 0 }}>
-              {openState === 'loaded' && (
-              <Paper withBorder p="md" radius="md" className="editor-card">
-                <Stack className="editor-stack">
-              {openState === 'loaded' && !!fileName && (
-                <Group justify="space-between" align="center" className="tree-header">
-                  <strong className="tree-title">{fileName}</strong>
-                  {detectedLanguage === 'markdown' && (
-                    <Switch
-                      checked={showPreview}
-                      onChange={(e) => setShowPreview(e.currentTarget.checked)}
-                      label="Split preview"
-                    />
-                  )}
-                </Group>
-              )}
-              <div className="editor-host">
-                <CodeEditor
-                  value={content}
-                  onChange={setContent}
-                  language={detectedLanguage}
-                  softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
-                  height={undefined as any}
-                  wrapColumn={detectedLanguage === 'markdown' && showPreview ? undefined : 96}
-                />
-              </div>
-                <Group>
-                  <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
-                    {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
-                  </Button>
-                </Group>
-                </Stack>
-              </Paper>
-              )}
+              <EditorPanel
+                open={openState === 'loaded'}
+                fileName={fileName}
+                language={detectedLanguage}
+                value={content}
+                onChange={setContent}
+                showPreviewToggle={detectedLanguage === 'markdown'}
+                showPreview={showPreview}
+                onTogglePreview={(v) => setShowPreview(v)}
+                wrapColumn={detectedLanguage === 'markdown' && showPreview ? undefined : 96}
+                onSaveClick={openConfirmSave}
+                isSaving={saveState === 'loading'}
+                canSave={saveState !== 'loading' && Boolean(sha)}
+              />
             </Grid.Col>
 
             {/* Preview column */}
             {(layoutMode === 'mode-preview' && openState === 'loaded') && (
-            <Grid.Col span={{ base: 12, md: 12, lg: 6, xl: 6 }}>
-              {(layoutMode === 'mode-preview' && openState === 'loaded') && (
-              <Paper withBorder p="md" radius="md" className="preview-card">
-                <ScrollArea className="preview-scroll" type="auto">
-                  <MarkdownPreview markdown={content} />
-                </ScrollArea>
-              </Paper>
-              )}
-            </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 12, lg: 6, xl: 6 }}>
+                <PreviewPanel open={true} markdown={content} />
+              </Grid.Col>
             )}
           </Grid>
         </div>
       )}
 
-      <div className={`status ${statusKind}`}>{status}</div>
+      <StatusBar kind={statusKind} text={status} />
       {/* Keyboard shortcut hints: shown when modifier is held outside editor */}
       <ShortcutHints
         show={modifierHeld && !focusInEditor}
