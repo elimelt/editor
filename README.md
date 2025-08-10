@@ -3,7 +3,7 @@ Modern GitHub Text Editor (minimal auth server)
 This project is a minimal SPA frontend with a tiny server used strictly for GitHub OAuth. The SPA talks directly to the GitHub REST API to read and update file contents via commits.
 
 What's included
-- Frontend: plain HTML + vanilla JS, no styling. Login, open a file, edit, save (commit).
+- Frontend: React + Vite (TypeScript). Login, open a file, edit, save (commit).
 - Server: Node + Express. Only handles OAuth: login redirect and callback code→token exchange.
 - Docker: Nginx serves the static site and reverse-proxies /api to the auth server.
 
@@ -61,8 +61,8 @@ Run locally with Docker (both services together)
 Local (without Docker)
 - Terminal 1 (auth server):
   cd server && npm install && npm start
-- Terminal 2 (static server):
-  npx http-server ./frontend -p 8080 -c-1
+- Terminal 2 (frontend dev server):
+  cd frontend && npm install && npm run dev
   Visit http://localhost:8080
 
 Deploying
@@ -81,7 +81,8 @@ Deploying
 
 GitHub Actions
 - `.github/workflows/deploy-frontend.yml`: publishes `frontend/` to GitHub Pages.
-  - Requires repo secrets: `AUTH_SERVER_BASE_URL` (e.g., https://auth.example.com/api)
+  - Builds the React app with Vite and publishes `frontend/dist` to Pages.
+  - Requires repo secrets: `AUTH_SERVER_BASE_URL` (e.g., https://auth.example.com/api) passed to `VITE_API_BASE`.
 - `.github/workflows/deploy-backend.yml`: deploys the auth server to your VM via SSH.
   - Requires repo secrets: `SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY` (private key), `SERVER_WORKDIR` (remote path), `GH_CLIENT_ID`, `GH_CLIENT_SECRET`, `FRONTEND_ORIGIN`, `GH_REDIRECT_URI`, `GH_OAUTH_SCOPES`.
 

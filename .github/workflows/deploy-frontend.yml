@@ -23,19 +23,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create config.js from secret
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend (Vite)
+        working-directory: frontend
+        env:
+          VITE_API_BASE: ${{ secrets.AUTH_SERVER_BASE_URL }}
         run: |
-          mkdir -p frontend
           if [ -z "${{ secrets.AUTH_SERVER_BASE_URL }}" ]; then
             echo 'Secret AUTH_SERVER_BASE_URL is not set. Set it to something like https://auth.example.com/api' >&2
             exit 1
           fi
-          echo "window.APP_CONFIG = { API_BASE: '${{ secrets.AUTH_SERVER_BASE_URL }}' };" > frontend/config.js
+          npm install --no-audit --no-fund
+          npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend
+          path: frontend/dist
 
   deploy:
     needs: build
