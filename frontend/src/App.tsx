@@ -29,6 +29,7 @@ export function App(): JSX.Element {
   const [openState, setOpenState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<LoadState>('idle');
   const [status, setStatus] = useState<string>('');
+  const [statusKind, setStatusKind] = useState<'info' | 'success' | 'error'>('info');
 
   const dirty = useMemo(() => openState === 'loaded' && saveState !== 'loading', [openState, saveState]);
 
@@ -48,11 +49,14 @@ export function App(): JSX.Element {
       const me = await getMe();
       setUser(me);
       setUserState('loaded');
+      setStatusKind('success');
+      setStatus(`Welcome ${me.login}`);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
       setUser(null);
       setUserState('error');
+      setStatusKind('error');
       setStatus('Login error. Please login again.');
       setTokenPresent(false);
       clearToken();
@@ -65,10 +69,12 @@ export function App(): JSX.Element {
 
   const onOpen = useCallback(async () => {
     if (!owner || !repo || !path) {
+      setStatusKind('error');
       setStatus('Owner, repo, and path are required');
       return;
     }
     setOpenState('loading');
+    setStatusKind('info');
     setStatus('Opening file...');
     setSha(null);
     try {
@@ -78,11 +84,13 @@ export function App(): JSX.Element {
       const text = fromBase64Unicode(String(data.content).replace(/\n/g, ''));
       setContent(text);
       setOpenState('loaded');
+      setStatusKind('success');
       setStatus(`Opened ${owner}/${repo}@${branch}:${path}`);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
       setOpenState('error');
+      setStatusKind('error');
       if (err instanceof HttpError) {
         if (err.status === 404) setStatus('File not found or insufficient permissions');
         else if (err.status === 403) setStatus('Forbidden or rate limited. Try again later.');
@@ -97,15 +105,18 @@ export function App(): JSX.Element {
 
   const onSave = useCallback(async () => {
     if (!owner || !repo || !path) {
+      setStatusKind('error');
       setStatus('Owner, repo, and path are required');
       return;
     }
     if (!sha) {
+      setStatusKind('error');
       setStatus('Missing file sha; please open the file again.');
       return;
     }
     const message = commitMsg.trim() || `Update ${path}`;
     setSaveState('loading');
+    setStatusKind('info');
     setStatus('Saving...');
     try {
       const data = await putFile(
@@ -120,11 +131,13 @@ export function App(): JSX.Element {
       const newSha = data?.content?.sha ?? null;
       setSha(newSha);
       setSaveState('loaded');
+      setStatusKind('success');
       setStatus('Saved successfully.');
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
       setSaveState('error');
+      setStatusKind('error');
       if (err instanceof HttpError) {
         if (err.status === 409) setStatus('Conflict: file changed upstream. Re-open to refresh before saving.');
         else if (err.status === 403) setStatus('Forbidden or rate limited. Try again later.');
@@ -144,6 +157,7 @@ export function App(): JSX.Element {
     setContent('');
     setSha(null);
     setCommitMsg('');
+    setStatusKind('info');
     setStatus('Logged out');
   }, []);
 
@@ -160,79 +174,72 @@ export function App(): JSX.Element {
 
   return (
     <div className="container">
-      <h1>GitHub Editor</h1>
-
-      <section>
-        {user ? (
-          <>
-            <div>Logged in as {user.login}</div>
-            <button onClick={onLogout}>Logout</button>
-          </>
-        ) : (
-          <button onClick={loginRedirect}>Login with GitHub</button>
-        )}
-      </section>
+      <div className="card header">
+        <h1 className="title">GitHub Editor</h1>
+        <div className="auth">
+          {user ? (
+            <>
+              <span className="muted">Logged in as {user.login}</span>
+              <button className="btn ghost" onClick={onLogout} title="Clear token">Logout</button>
+            </>
+          ) : (
+            <button className="btn primary" onClick={loginRedirect}>Login with GitHub</button>
+          )}
+        </div>
+      </div>
 
       <hr />
 
-      <section>
-        <div>
-          <label>
-            Owner:{' '}
-            <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. your-username" />
-          </label>
+      <div className="card">
+        <div className="grid">
+          <div className="field">
+            <label htmlFor="owner">Owner</label>
+            <input id="owner" className={`input${!owner ? ' invalid' : ''}`} value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. your-username" />
+          </div>
+          <div className="field">
+            <label htmlFor="repo">Repo</label>
+            <input id="repo" className={`input${!repo ? ' invalid' : ''}`} value={repo} onChange={(e) => setRepo(e.target.value)} placeholder="e.g. your-repo" />
+          </div>
+          <div className="field">
+            <label htmlFor="branch">Branch</label>
+            <input id="branch" className="input" value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="e.g. main" />
+          </div>
+          <div className="field">
+            <label htmlFor="path">Path</label>
+            <input id="path" className={`input${!path ? ' invalid' : ''}`} value={path} onChange={(e) => setPath(e.target.value)} placeholder="e.g. README.md" />
+          </div>
         </div>
-        <div>
-          <label>
-            Repo:{' '}
-            <input value={repo} onChange={(e) => setRepo(e.target.value)} placeholder="e.g. your-repo" />
-          </label>
-        </div>
-        <div>
-          <label>
-            Branch:{' '}
-            <input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="e.g. main" />
-          </label>
-        </div>
-        <div>
-          <label>
-            Path:{' '}
-            <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="e.g. README.md" />
-          </label>
-        </div>
-        <div>
-          <button onClick={onOpen} disabled={!user || openState === 'loading'}>
-            {openState === 'loading' ? 'Opening…' : 'Open file'}
+        <div className="row section">
+          <button className="btn" onClick={onOpen} disabled={!user || openState === 'loading'}>
+            {openState === 'loading' ? <span className="row"><span className="spinner" /> Opening…</span> : 'Open file'}
           </button>
+          <span className="muted">Tip: Save with <span className="kbd">Cmd/Ctrl+S</span></span>
         </div>
-      </section>
+      </div>
 
       {openState === 'loaded' && (
-        <section className="section">
-          <div>
-            <label>
-              Commit message:{' '}
-              <input value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
-            </label>
+        <div className="card section">
+          <div className="field">
+            <label htmlFor="commit">Commit message</label>
+            <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
           </div>
-          <div>
+          <div className="section">
             <textarea
+              className="textarea"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={24}
-              cols={100}
               placeholder="File content will appear here..."
             />
           </div>
-          <div>
-            <button onClick={onSave} disabled={saveState === 'loading'}>
-              {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
+          <div className="row section">
+            <button className="btn primary" onClick={onSave} disabled={saveState === 'loading'}>
+              {saveState === 'loading' ? <span className="row"><span className="spinner" /> Saving…</span> : 'Save (Commit)'}
             </button>
           </div>
-        </section>
+        </div>
       )}
 
-      <div className="status">{status}</div>
+      <div className={`status ${statusKind}`}>{status}</div>
     </div>
   );
 }
