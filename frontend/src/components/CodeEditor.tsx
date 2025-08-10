@@ -195,18 +195,36 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
       height: height == null ? '100%' : (typeof height === 'number' ? `${height}px` : String(height)),
       border: '1px solid var(--border)',
       borderRadius: '8px',
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+      fontVariantLigatures: 'none',
+      letterSpacing: '0',
+      textRendering: 'optimizeSpeed',
     },
     '.cm-scroller': {
       overflow: 'auto',
       height: '100%',
       WebkitOverflowScrolling: 'touch',
     },
-    '.cm-content': softWrap && typeof wrapColumn === 'number' ? {
-      maxWidth: `${wrapColumn}ch`,
-      marginInline: 'auto',
-    } : {},
+    '.cm-content': {
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+      fontVariantLigatures: 'none',
+      letterSpacing: '0',
+      tabSize: '4',
+      ...(softWrap && typeof wrapColumn === 'number' ? {
+        maxWidth: `${wrapColumn}ch`,
+        marginInline: 'auto',
+      } : {}),
+    },
     '.cm-line': {
       textIndent: '0',
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+      fontVariantLigatures: 'none',
+      letterSpacing: '0',
+    },
+    '.cm-gutters': {
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+      fontVariantLigatures: 'none',
+      letterSpacing: '0',
     },
   }), [height, softWrap, wrapColumn]);
 
