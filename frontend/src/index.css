@@ -243,7 +243,7 @@ body {
 .tree-scroll { border-top: none; padding-top: 0; }
 .tree-scroll .mantine-ScrollArea-viewport { height: 100%; }
 .preview-card .mantine-ScrollArea-viewport { height: 100%; }
-.cm-scroller { scrollbar-gutter: stable both-edges; }
+.cm-scroller { scrollbar-gutter: stable both-edges; position: absolute; }
 
 /* Editor panel fill */
 .editor-stack { height: 100%; }
