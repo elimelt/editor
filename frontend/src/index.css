@@ -183,14 +183,25 @@ body {
   .editor-layout.mode-tree { grid-template-columns: 260px minmax(0, 1fr) 0; }
   .editor-layout.mode-preview { grid-template-columns: 0 minmax(0, 1fr) minmax(0, 1fr); }
   .editor-layout.mode-editor-only { grid-template-columns: 0 minmax(0, 1fr) 0; }
-  .editor-layout.mode-editor-only > *:first-child,
-  .editor-layout.mode-preview > *:first-child { display: none; }
+  /* Keep slots by position so editor is always the middle column */
+  .editor-layout .slot-tree { grid-column: 1; }
+  .editor-layout .slot-editor { grid-column: 2; }
+  .editor-layout .slot-preview { grid-column: 3; }
+  /* Hide tree slot when not in tree mode */
+  .editor-layout.mode-preview .slot-tree,
+  .editor-layout.mode-editor-only .slot-tree { display: none; }
+  /* Hide preview slot when not in preview mode */
+  .editor-layout.mode-tree .slot-preview,
+  .editor-layout.mode-editor-only .slot-preview { display: none; }
 }
 
 /* Medium screens: when tree is hidden and preview is enabled, show 2 columns side-by-side */
 @media (min-width: 720px) and (max-width: 959px) {
   .editor-layout { grid-template-columns: 1fr; }
   .editor-layout.mode-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .editor-layout .slot-tree { display: none; }
+  .editor-layout .slot-editor { grid-column: 1; }
+  .editor-layout .slot-preview { grid-column: 2; }
 }
 
 /* Ensure hidden tree does not occupy a grid slot on small/medium screens */

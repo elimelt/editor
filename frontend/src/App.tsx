@@ -458,7 +458,7 @@ export function App(): JSX.Element {
         <div className={`section editor-layout ${layoutMode}`}>
           <Transition mounted={layoutMode === 'mode-tree'} transition="slide-right" duration={220} timingFunction="ease">
             {(styles) => (
-              <div style={{ ...styles }}>
+              <div className="slot-tree" style={{ ...styles }}>
                 <Paper withBorder p="md" radius="md" className="filetree" style={{ ...styles }}>
                   <FileTree
                     owner={owner}
@@ -476,8 +476,9 @@ export function App(): JSX.Element {
             )}
           </Transition>
           {openState === 'loaded' && (
-          <Paper withBorder p="md" radius="md" className={`editor-card ${!showTree && !showPreview ? 'span-full' : ''}`}>
-            <Stack className="editor-stack">
+          <div className="slot-editor">
+            <Paper withBorder p="md" radius="md" className={`editor-card ${!showTree && !showPreview ? 'span-full' : ''}`}>
+              <Stack className="editor-stack">
               {detectedLanguage === 'markdown' && (
                 <Group justify="flex-end">
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
@@ -498,17 +499,18 @@ export function App(): JSX.Element {
                   wrapColumn={detectedLanguage === 'markdown' && showPreview ? undefined : 96}
                 />
               </div>
-              <Group>
-                <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
-                  {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
-                </Button>
-              </Group>
-            </Stack>
-          </Paper>
+                <Group>
+                  <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
+                    {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
+                  </Button>
+                </Group>
+              </Stack>
+            </Paper>
+          </div>
           )}
           <Transition mounted={layoutMode === 'mode-preview' && openState === 'loaded'} transition="slide-left" duration={220} timingFunction="ease">
             {(styles) => (
-              <div style={{ ...styles }}>
+              <div className="slot-preview" style={{ ...styles }}>
                 <Paper withBorder p="md" radius="md" className="preview-card" style={{ ...styles }}>
                   <ScrollArea className="preview-scroll" type="auto">
                     <MarkdownPreview markdown={content} />
