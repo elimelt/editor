@@ -80,6 +80,7 @@ app.get('/api/auth/callback', async (req, res) => {
         redirect_uri: REDIRECT_URI,
       }),
     });
+
     if (!tokenRes.ok) {
       const text = await tokenRes.text();
       return res.status(502).send(`Token exchange failed: ${text}`);

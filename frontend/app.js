@@ -43,6 +43,7 @@
     }
   }
 
+
   async function fetchGitHub(path, options = {}) {
     if (!accessToken) throw new Error('Missing access token');
     const headers = Object.assign({}, options.headers || {}, {
