@@ -166,12 +166,16 @@ export function App(): JSX.Element {
     }
   }, [openState, detectedLanguage]);
 
-  // Enforce allowed layouts: tree+editor OR editor-only OR editor+preview
+  // Enforce allowed layouts: editor-only OR editor+tree OR editor+preview
   useEffect(() => {
-    if (showPreview) setShowTree(false);
+    if (showPreview) {
+      setShowTree(false);
+    }
   }, [showPreview]);
   useEffect(() => {
-    if (showTree) setShowPreview(false);
+    if (showTree) {
+      setShowPreview(false);
+    }
   }, [showTree]);
 
   const onOpen = useCallback(async (overridePath?: string) => {
@@ -217,25 +221,35 @@ export function App(): JSX.Element {
       setStatus('Owner, repo, and path are required');
       return;
     }
-    if (!sha) {
-      setStatusKind('error');
-      setStatus('Missing file sha; please open the file again.');
-      return;
-    }
     const message = (messageOverride ?? commitMsg.trim()) || `Update ${path}`;
     setSaveState('loading');
     setStatusKind('info');
     setStatus('Saving...');
     try {
-      const data = await putFile(
-        owner.trim(),
-        repo.trim(),
-        path.trim(),
-        branch.trim() || 'main',
-        message,
-        toBase64Unicode(content),
-        sha,
-      );
+      let data: any;
+      if (!sha) {
+        // New file (draft) -> create
+        const { createFile } = await import('@/api/github');
+        data = await createFile(
+          owner.trim(),
+          repo.trim(),
+          path.trim(),
+          branch.trim() || 'main',
+          message,
+          toBase64Unicode(content),
+        );
+      } else {
+        // Existing file -> update
+        data = await putFile(
+          owner.trim(),
+          repo.trim(),
+          path.trim(),
+          branch.trim() || 'main',
+          message,
+          toBase64Unicode(content),
+          sha,
+        );
+      }
       const newSha = data?.content?.sha ?? null;
       setSha(newSha);
       setSaveState('loaded');
@@ -418,7 +432,12 @@ export function App(): JSX.Element {
                         setBranch(r.defaultBranch || 'main');
                         setStatusKind('info');
                         setStatus(`Selected ${r.fullName}`);
+                        // Open blank editor with file tree by default
                         setShowTree(true);
+                        setOpenState('loaded');
+                        setPath('');
+                        setContent('');
+                        setSha('');
                       }}
                       title={r.desc || r.fullName}
                     >
