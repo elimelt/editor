@@ -47,6 +47,38 @@ export async function getMe(): Promise<GitHubUser> {
   return res.json();
 }
 
+export type GitHubRepo = {
+  id: number;
+  name: string;
+  full_name: string;
+  default_branch: string;
+  private: boolean;
+  fork: boolean;
+  archived: boolean;
+  owner: { login: string };
+  description?: string | null;
+  updated_at: string;
+  permissions?: { push?: boolean };
+};
+
+export async function listEditableRepos(limit: number = 30): Promise<GitHubRepo[]> {
+  // Fetch up to 100 recently updated repos the user has access to, then filter by push permission
+  const search = new URLSearchParams({
+    per_page: '100',
+    sort: 'updated',
+    direction: 'desc',
+    affiliation: 'owner,collaborator,organization_member',
+    visibility: 'all',
+  });
+  const res = await githubFetch(`/user/repos?${search.toString()}`);
+  if (!res.ok) throw await errorFromResponse(res);
+  const repos = (await res.json()) as GitHubRepo[];
+  const filtered = repos
+    .filter((r) => !r.archived && (r.permissions?.push ?? false))
+    .slice(0, Math.max(0, limit));
+  return filtered;
+}
+
 export async function getFile(owner: string, repo: string, path: string, branch: string): Promise<GitHubContentResponse> {
   const res = await githubFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`);
   if (!res.ok) throw await errorFromResponse(res);

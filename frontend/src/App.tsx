@@ -9,6 +9,7 @@ import {
   fromBase64Unicode,
   clearToken,
   HttpError,
+    listEditableRepos,
 } from '@/api/github';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
@@ -31,6 +32,9 @@ export function App(): JSX.Element {
   const [status, setStatus] = useState<string>('');
   const [statusKind, setStatusKind] = useState<'info' | 'success' | 'error'>('info');
 
+  const [repos, setRepos] = useState<Array<{ owner: string; name: string; fullName: string; defaultBranch: string; desc?: string | null }>>([]);
+  const [repoQuery, setRepoQuery] = useState('');
+
   const dirty = useMemo(() => openState === 'loaded' && saveState !== 'loading', [openState, saveState]);
 
   useEffect(() => {
@@ -51,6 +55,16 @@ export function App(): JSX.Element {
       setUserState('loaded');
       setStatusKind('success');
       setStatus(`Welcome ${me.login}`);
+      // Load repos in background
+      try {
+        const list = await listEditableRepos(30);
+        setRepos(
+          list.map((r) => ({ owner: r.owner.login, name: r.name, fullName: r.full_name, defaultBranch: r.default_branch, desc: r.description }))
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load repos', e);
+      }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -191,6 +205,56 @@ export function App(): JSX.Element {
       <hr />
 
       <div className="card">
+        {!!user && (
+          <>
+            <div className="row" style={{ justifyContent: 'space-between' }}>
+              <strong>Your repos</strong>
+              <input
+                className="input"
+                placeholder="Search repos..."
+                value={repoQuery}
+                onChange={(e) => setRepoQuery(e.target.value)}
+                aria-label="Search repositories"
+                style={{ maxWidth: 280 }}
+              />
+            </div>
+            <div className="section" role="list" aria-label="Editable repositories">
+              {repos
+                .filter((r) => {
+                  const q = repoQuery.trim().toLowerCase();
+                  if (!q) return true;
+                  return (
+                    r.fullName.toLowerCase().includes(q) ||
+                    (r.desc ? r.desc.toLowerCase().includes(q) : false)
+                  );
+                })
+                .slice(0, 10)
+                .map((r) => (
+                  <button
+                    key={r.fullName}
+                    className="btn"
+                    role="listitem"
+                    onClick={() => {
+                      setOwner(r.owner);
+                      setRepo(r.name);
+                      setBranch(r.defaultBranch || 'main');
+                      setPath('README.md');
+                      setStatusKind('info');
+                      setStatus(`Selected ${r.fullName}`);
+                    }}
+                    title={r.desc || r.fullName}
+                    style={{ marginRight: 8, marginBottom: 8 }}
+                  >
+                    {r.fullName}
+                  </button>
+                ))}
+              {repos.length === 0 && (
+                <div className="muted">No editable repositories found.</div>
+              )}
+            </div>
+            <hr className="section" />
+          </>
+        )}
         <div className="grid">
           <div className="field">
             <label htmlFor="owner">Owner</label>
