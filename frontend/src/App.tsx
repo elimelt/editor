@@ -480,7 +480,6 @@ export function App(): JSX.Element {
                     >
                       {r.fullName}
                     </Button>
-                    <Button variant="subtle" onClick={() => togglePinnedRepo(r.owner, r.name)} title="Pin/unpin">★</Button>
                   </Group>
                 ))}
               {repos.length === 0 && (
