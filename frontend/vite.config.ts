@@ -9,6 +9,32 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          mantine: ['@mantine/core', '@mantine/hooks', '@mantine/notifications'],
+          codemirror: [
+            'codemirror',
+            '@codemirror/state',
+            '@codemirror/view',
+            '@codemirror/language',
+            '@codemirror/search',
+            '@codemirror/autocomplete',
+            '@codemirror/lint',
+            '@codemirror/lang-markdown',
+            '@codemirror/lang-javascript',
+            '@codemirror/lang-css',
+            '@codemirror/lang-html',
+            '@codemirror/lang-json',
+            '@codemirror/lang-python',
+            '@codemirror/theme-one-dark',
+          ],
+          markdown: ['marked', 'highlight.js', 'dompurify'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1600,
   },
   server: {
     port: 8080,

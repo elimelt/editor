@@ -16,6 +16,8 @@ import {
   import { MarkdownPreview } from '@/components/MarkdownPreview';
   import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea } from '@mantine/core';
   import { notifications } from '@mantine/notifications';
+  import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
+  import { CommandPalette } from '@/components/CommandPalette';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -56,6 +58,7 @@ export function App(): JSX.Element {
   }, [path]);
 
   const [showPreview, setShowPreview] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
@@ -120,6 +123,7 @@ export function App(): JSX.Element {
       setOpenState('loaded');
       setStatusKind('success');
       setStatus(`Opened ${owner}/${repo}@${branch}:${overridePath || path}`);
+      addRecentFile({ owner, repo, branch, path: overridePath || path });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -216,6 +220,10 @@ export function App(): JSX.Element {
         e.preventDefault();
         void onSave();
       }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -227,6 +235,7 @@ export function App(): JSX.Element {
         <Group justify="space-between" wrap="wrap">
           <Title order={2}>GitHub Editor</Title>
           <Group>
+            <Button variant="light" onClick={() => setPaletteOpen(true)} title="Command palette (Cmd/Ctrl+K)">Command palette</Button>
             {user ? (
               <>
                 <Badge variant="light" color="gray">{user.login}</Badge>
@@ -245,7 +254,17 @@ export function App(): JSX.Element {
         {!!user && (
           <>
             <Group justify="space-between" align="center">
-              <strong>Your repos</strong>
+              <Group>
+                <strong>Your repos</strong>
+                <Button variant="subtle" onClick={() => {
+                  const pins = getPinnedRepos();
+                  setRepos((old) => {
+                    const set = new Set(old.map((o) => `${o.owner}/${o.name}`));
+                    const added = pins.filter((p) => !set.has(`${p.owner}/${p.repo}`)).map((p) => ({ owner: p.owner, name: p.repo, fullName: `${p.owner}/${p.repo}`, defaultBranch: 'main' as string, desc: '' }));
+                    return [...added, ...old];
+                  });
+                }}>Load pins</Button>
+              </Group>
               <TextInput
                 placeholder="Search repos..."
                 value={repoQuery}
@@ -266,22 +285,24 @@ export function App(): JSX.Element {
                 })
                 .slice(0, 10)
                 .map((r) => (
-                  <Button
-                    key={r.fullName}
-                    variant="light"
-                    role="listitem"
-                    onClick={() => {
-                      setOwner(r.owner);
-                      setRepo(r.name);
-                      setBranch(r.defaultBranch || 'main');
-                      setPath('README.md');
-                      setStatusKind('info');
-                      setStatus(`Selected ${r.fullName}`);
-                    }}
-                    title={r.desc || r.fullName}
-                  >
-                    {r.fullName}
-                  </Button>
+                  <Group key={r.fullName} gap={4} wrap="nowrap">
+                    <Button
+                      variant="light"
+                      role="listitem"
+                      onClick={() => {
+                        setOwner(r.owner);
+                        setRepo(r.name);
+                        setBranch(r.defaultBranch || 'main');
+                        setPath('README.md');
+                        setStatusKind('info');
+                        setStatus(`Selected ${r.fullName}`);
+                      }}
+                      title={r.desc || r.fullName}
+                    >
+                      {r.fullName}
+                    </Button>
+                    <Button variant="subtle" onClick={() => togglePinnedRepo(r.owner, r.name)} title="Pin/unpin">★</Button>
+                  </Group>
                 ))}
               {repos.length === 0 && (
                 <div className="muted">No editable repositories found.</div>
@@ -351,6 +372,26 @@ export function App(): JSX.Element {
       )}
 
       <div className={`status ${statusKind}`}>{status}</div>
+      <CommandPalette
+        opened={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onOpenFile={(f) => {
+          setOwner(f.owner);
+          setRepo(f.repo);
+          setBranch(f.branch);
+          setPath(f.path);
+          void onOpen(f.path);
+          setPaletteOpen(false);
+        }}
+        onOpenRepo={(r) => {
+          setOwner(r.owner);
+          setRepo(r.repo);
+          setBranch('main');
+          setPath('README.md');
+          setPaletteOpen(false);
+        }}
+        onTogglePreview={() => setShowPreview((v) => !v)}
+      />
     </Container>
   );
 }
