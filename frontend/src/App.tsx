@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   getMe,
   readAccessTokenFromHashOrSession,
@@ -64,6 +64,8 @@ export function App(): JSX.Element {
   const [createOpen, setCreateOpen] = useState(false);
   const [newPath, setNewPath] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const commitInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
@@ -155,7 +157,7 @@ export function App(): JSX.Element {
     }
   }, [owner, repo, path, branch]);
 
-  const onSave = useCallback(async () => {
+  const onSave = useCallback(async (messageOverride?: string) => {
     if (!owner || !repo || !path) {
       setStatusKind('error');
       setStatus('Owner, repo, and path are required');
@@ -166,7 +168,7 @@ export function App(): JSX.Element {
       setStatus('Missing file sha; please open the file again.');
       return;
     }
-    const message = commitMsg.trim() || `Update ${path}`;
+    const message = (messageOverride ?? commitMsg.trim()) || `Update ${path}`;
     setSaveState('loading');
     setStatusKind('info');
     setStatus('Saving...');
@@ -206,6 +208,12 @@ export function App(): JSX.Element {
     }
   }, [owner, repo, path, branch, commitMsg, content, sha]);
 
+  const openConfirmSave = useCallback(() => {
+    if (openState !== 'loaded' || !sha) return;
+    setCommitMsg((prev) => (prev && prev.trim()) ? prev : `Update ${path}`);
+    setConfirmSaveOpen(true);
+  }, [openState, sha, path]);
+
   const onLogout = useCallback(() => {
     clearToken();
     setTokenPresent(false);
@@ -232,7 +240,7 @@ export function App(): JSX.Element {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
-        void onSave();
+        openConfirmSave();
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
@@ -241,6 +249,18 @@ export function App(): JSX.Element {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
         e.preventDefault();
         setPaletteOpen(true);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        if (openState === 'loaded' && detectedLanguage === 'markdown') {
+          setShowPreview((v) => !v);
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (openState === 'loaded' && detectedLanguage === 'markdown') {
+          setShowPreview((v) => !v);
+        }
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
@@ -259,7 +279,7 @@ export function App(): JSX.Element {
     const openSettings = () => setSettingsOpen(true);
     window.addEventListener('open-settings' as any, openSettings);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onSave]);
+  }, [onSave, openConfirmSave, openState, detectedLanguage]);
 
   return (
     <Container size="lg" py="lg">
@@ -374,8 +394,8 @@ export function App(): JSX.Element {
       {(owner && repo) && (showTree || openState === 'loaded') && (
         <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
           <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
-            {(styles) => (
-              <div style={styles}>
+            {() => (
+              <div className="transition-wrapper">
                 <Paper withBorder p="md" radius="md" className="filetree">
                   <FileTree
                     owner={owner}
@@ -395,7 +415,6 @@ export function App(): JSX.Element {
           {openState === 'loaded' && (
           <Paper withBorder p="md" radius="md" className="editor-card">
             <Stack>
-              <TextInput label="Commit message" id="commit" value={commitMsg} onChange={(e) => setCommitMsg(e.currentTarget.value)} placeholder="e.g. Update README" />
               {detectedLanguage === 'markdown' && (
                 <Group justify="flex-end">
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
@@ -410,7 +429,7 @@ export function App(): JSX.Element {
                 wrapColumn={96}
               />
               <Group>
-                <Button onClick={onSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
+                <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
                   {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
                 </Button>
               </Group>
@@ -418,8 +437,8 @@ export function App(): JSX.Element {
           </Paper>
           )}
           <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="fade" duration={140} timingFunction="ease-out">
-            {(styles) => (
-              <div style={styles}>
+            {() => (
+              <div className="transition-wrapper">
                 {openState === 'loaded' && detectedLanguage === 'markdown' && showPreview && (
                   <Paper withBorder p="md" radius="md" className="preview-card">
                     <ScrollArea h={600} type="auto">
@@ -454,6 +473,37 @@ export function App(): JSX.Element {
                 notifications.show({ color: 'red', title: 'Create failed', message: e instanceof Error ? e.message : 'Error' });
               }
             }} disabled={!newPath.trim()}>Create</Button>
+          </Group>
+        </Stack>
+      </Modal>
+      <Modal
+        opened={confirmSaveOpen}
+        onClose={() => setConfirmSaveOpen(false)}
+        title="Commit changes"
+        trapFocus
+        onEnterTransitionEnd={() => commitInputRef.current?.focus()}
+      >
+        <Stack>
+          <TextInput
+            label="Commit message"
+            id="commit"
+            value={commitMsg}
+            onChange={(e) => setCommitMsg(e.currentTarget.value)}
+            placeholder={`Update ${path || 'file'}`}
+            ref={commitInputRef}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                void onSave(commitMsg);
+                setConfirmSaveOpen(false);
+              }
+            }}
+          />
+          <Group justify="flex-end">
+            <Button onClick={() => setConfirmSaveOpen(false)} variant="subtle">Cancel</Button>
+            <Button onClick={async () => { await onSave(commitMsg); setConfirmSaveOpen(false); }} loading={saveState === 'loading'}>
+              Commit
+            </Button>
           </Group>
         </Stack>
       </Modal>

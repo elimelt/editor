@@ -181,6 +181,9 @@ body {
   .editor-layout.with-preview.tree-hidden { grid-template-columns: 1fr 1fr; }
 }
 
+/* Animations wrapper styles for grid children */
+.editor-layout .transition-wrapper { display: contents; }
+
 .filetree { overflow: auto; max-height: 40vh; }
 @media (min-width: 960px) { .filetree { max-height: 600px; } }
 
