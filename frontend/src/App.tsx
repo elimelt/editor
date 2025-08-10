@@ -450,7 +450,7 @@ export function App(): JSX.Element {
 
       {(owner && repo) && (showTree || openState === 'loaded') && (
         <div className={`section editor-layout ${showPreview && detectedLanguage === 'markdown' ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
-          <Transition mounted={showTree} transition="slide-right" duration={220} timingFunction="ease" keepMounted>
+          <Transition mounted={showTree} transition="slide-right" duration={220} timingFunction="ease">
             {(styles) => (
               <div style={{ ...styles }}>
                 <Paper withBorder p="md" radius="md" className="filetree" style={{ ...styles }}>
@@ -500,7 +500,7 @@ export function App(): JSX.Element {
             </Stack>
           </Paper>
           )}
-          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="slide-left" duration={220} timingFunction="ease" keepMounted>
+          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="slide-left" duration={220} timingFunction="ease">
             {(styles) => (
               <div style={{ ...styles }}>
                 <Paper withBorder p="md" radius="md" className="preview-card" style={{ ...styles }}>
