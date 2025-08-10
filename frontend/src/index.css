@@ -224,7 +224,7 @@ body {
 .editor-layout > * { transition: transform 220ms ease, opacity 160ms ease; }
 
 .filetree, .editor-card, .preview-card {
-  height: var(--editor-panel-height);
+  height: fit-content;
   display: flex;
   flex-direction: column;
   overflow: hidden;
