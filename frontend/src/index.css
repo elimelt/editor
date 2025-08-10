@@ -184,4 +184,21 @@ body {
 /* Editor-only layout (tree hidden) */
 /* old editor-only layout retained for compatibility but unused */
 
+/* File tree styling */
+.tree-header { margin-bottom: 6px; }
+.tree-title { font-weight: 600; letter-spacing: 0.2px; }
+.tree-scroll { border-top: 1px solid var(--border); padding-top: 6px; }
+.tree-list { display: grid; gap: 2px; }
+.tree-branch { }
+.tree-row { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 8px; }
+.tree-row:hover { background: color-mix(in oklab, var(--panel) 85%, transparent); }
+.tree-row.file .tree-name { font-weight: 500; }
+.tree-caret { width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; background: transparent; position: relative; }
+.tree-caret::before { content: ''; position: absolute; inset: 3px 4px; border-left: 6px solid var(--muted); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transform: rotate(0deg); transition: transform .15s ease; }
+.tree-caret.open::before { transform: rotate(90deg); }
+.tree-caret.placeholder { border-color: transparent; }
+.tree-name { appearance: none; background: transparent; border: 1px solid transparent; color: var(--text); text-align: left; padding: 6px 8px; border-radius: 6px; cursor: pointer; font: inherit; }
+.tree-name:hover { border-color: var(--border); }
+.tree-children { margin-left: 14px; display: grid; gap: 2px; }
+
 

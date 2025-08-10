@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GitHubDirEntry, listDirectory } from '@/api/github';
-import { TextInput, Button, Stack } from '@mantine/core';
+import { TextInput, Button, ActionIcon, Group, Tooltip, ScrollArea } from '@mantine/core';
 
 type Node = {
   name: string;
@@ -65,23 +65,27 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile, onC
 
   return (
     <div>
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <strong>Files</strong>
-        <div className="row" style={{ gap: 6 }}>
-          <TextInput placeholder="Filter files..." value={filter} onChange={(e) => setFilter(e.currentTarget.value)} maw={260} />
+      <Group justify="space-between" className="tree-header">
+        <strong className="tree-title">Files</strong>
+        <Group gap={6} className="tree-toolbar">
+          <TextInput placeholder="Filter files…" value={filter} onChange={(e) => setFilter(e.currentTarget.value)} maw={220} size="sm" />
           {onCreate && (
-            <Button variant="light" onClick={() => onCreate(visibleTree.path || '')}>New</Button>
+            <Tooltip label="New file" withArrow>
+              <ActionIcon variant="subtle" onClick={() => onCreate(visibleTree.path || '')} aria-label="New file">＋</ActionIcon>
+            </Tooltip>
           )}
+        </Group>
+      </Group>
+      <ScrollArea className="tree-scroll" type="auto" mah={560}>
+        <div className="tree-list" role="tree" aria-label="Repository files">
+          <TreeNode node={visibleTree} onToggle={async (n) => {
+            if (n.type === 'dir') {
+              if (!n.loaded) await loadChildren(n);
+              setRoot((prev) => applyUpdate(prev, n.path, { expanded: !findNode(prev, n.path)?.expanded }));
+            }
+          }} onSelect={(n) => n.type === 'file' && onSelectFile(n.path)} onDelete={onDelete ? (n) => onDelete(n.path) : undefined} />
         </div>
-      </div>
-      <div className="section" role="tree" aria-label="Repository files">
-        <TreeNode node={visibleTree} onToggle={async (n) => {
-          if (n.type === 'dir') {
-            if (!n.loaded) await loadChildren(n);
-            setRoot((prev) => applyUpdate(prev, n.path, { expanded: !findNode(prev, n.path)?.expanded }));
-          }
-        }} onSelect={(n) => n.type === 'file' && onSelectFile(n.path)} onDelete={onDelete ? (n) => onDelete(n.path) : undefined} />
-      </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -90,21 +94,30 @@ function TreeNode({ node, onToggle, onSelect, onDelete }: { node: Node; onToggle
   const isRoot = node.path === '' && node.type === 'dir';
   const children = node.children || [];
   return (
-    <div style={{ marginLeft: isRoot ? 0 : 12 }}>
+    <div className="tree-branch" style={{ marginLeft: isRoot ? 0 : 12 }}>
       {!isRoot && (
-        <div className="row" style={{ gap: 6 }}>
+        <div className={`tree-row ${node.type}`}>
           {node.type === 'dir' ? (
-            <Button variant="subtle" onClick={() => onToggle(node)} title={node.expanded ? 'Collapse' : 'Expand'}>
-              {node.expanded ? '▾' : '▸'}
-            </Button>
+            <button className={`tree-caret ${node.expanded ? 'open' : ''}`} onClick={() => onToggle(node)} aria-label={node.expanded ? 'Collapse' : 'Expand'} />
           ) : (
-            <span style={{ width: 24 }} />
+            <span className="tree-caret placeholder" />
           )}
-          <Button variant="light" onClick={() => (node.type === 'dir' ? onToggle(node) : onSelect(node))} style={{ textAlign: 'left' }}>
+          <button
+            className="tree-name"
+            onClick={() => (node.type === 'dir' ? onToggle(node) : onSelect(node))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') (node.type === 'dir' ? onToggle(node) : onSelect(node));
+              if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); (node.type === 'dir' ? onToggle(node) : onSelect(node)); }
+              if (e.key === 'ArrowRight' && node.type === 'dir' && !node.expanded) onToggle(node);
+              if (e.key === 'ArrowLeft' && node.type === 'dir' && node.expanded) onToggle(node);
+            }}
+          >
             {node.name}
-          </Button>
+          </button>
           {node.type === 'file' && onDelete && (
-            <Button variant="subtle" color="red" onClick={() => onDelete(node)} title="Delete">🗑</Button>
+            <Tooltip label="Delete" withArrow>
+              <ActionIcon variant="subtle" color="red" onClick={() => onDelete(node)} aria-label="Delete file">🗑</ActionIcon>
+            </Tooltip>
           )}
         </div>
       )}
@@ -112,7 +125,7 @@ function TreeNode({ node, onToggle, onSelect, onDelete }: { node: Node; onToggle
         <div className="muted">Select a repository to load files.</div>
       )}
       {node.expanded && children.length > 0 && (
-        <div className="section">
+        <div className="tree-children">
           {children.map((c) => (
             <TreeNode key={c.path} node={c} onToggle={onToggle} onSelect={onSelect} onDelete={onDelete} />
           ))}
