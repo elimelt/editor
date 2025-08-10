@@ -200,7 +200,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     },
     '.cm-scroller': {
       overflow: 'auto',
-      height: '100%',
+      height: 'calc(100% - 8px)',
       position: 'static',
       WebkitOverflowScrolling: 'touch',
     },

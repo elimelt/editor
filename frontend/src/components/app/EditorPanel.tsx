@@ -22,7 +22,7 @@ export function EditorPanel({ open, fileName, language, value, onChange, showPre
   if (!open) return null;
   return (
     <Paper withBorder p="md" radius="md" className="editor-card">
-      <Stack className="editor-stack">
+      <Stack className="editor-stack" gap="sm">
         {!!fileName && (
           <Group justify="space-between" align="center" className="tree-header">
             <strong className="tree-title">{fileName}</strong>
@@ -41,7 +41,7 @@ export function EditorPanel({ open, fileName, language, value, onChange, showPre
             wrapColumn={wrapColumn}
           />
         </div>
-        <Group>
+        <Group justify="flex-end">
           <button className="btn" onClick={onSaveClick} disabled={!canSave || isSaving}>
             {isSaving ? 'Saving…' : 'Save (Commit)'}
           </button>
