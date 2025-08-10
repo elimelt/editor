@@ -74,6 +74,7 @@ export function App(): JSX.Element {
 
   // Sync repo/file selection with URL for shareable links and browser history
   const isRestoringFromHistoryRef = useRef(false);
+  const pendingOpenPathRef = useRef<string | null>(null);
 
   // Parse URL on first mount and restore state
   useEffect(() => {
@@ -89,7 +90,7 @@ export function App(): JSX.Element {
       setBranch(b || 'main');
       if (p) {
         setPath(p);
-        void onOpen(p);
+        pendingOpenPathRef.current = p;
       } else {
         // Repo context without a file
         setOpenState('loaded');
@@ -99,6 +100,16 @@ export function App(): JSX.Element {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If a file open is pending from URL/history, trigger it once state and token are ready
+  useEffect(() => {
+    if (!pendingOpenPathRef.current) return;
+    if (!owner || !repo) return;
+    if (!tokenPresent) return;
+    const toOpen = pendingOpenPathRef.current;
+    pendingOpenPathRef.current = null;
+    void onOpen(toOpen);
+  }, [owner, repo, branch, tokenPresent, onOpen]);
 
   // Update URL when selection changes (owner/repo/branch/path)
   useEffect(() => {
@@ -130,7 +141,7 @@ export function App(): JSX.Element {
       setBranch(b || 'main');
       setPath(p);
       if (o && r && p) {
-        void onOpen(p);
+        pendingOpenPathRef.current = p;
       } else if (o && r) {
         setOpenState('loaded');
         setContent('');
