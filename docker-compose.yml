@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  auth-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    env_file:
+      - server/.env
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    depends_on:
+      - auth-server
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+
+

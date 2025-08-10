@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitHub Editor (Minimal)</title>
+  </head>
+  <body>
+    <h1>GitHub Editor</h1>
+
+    <div id="auth-section">
+      <button id="login-btn">Login with GitHub</button>
+      <button id="logout-btn" style="display:none;">Logout</button>
+      <div id="user-info"></div>
+    </div>
+
+    <hr />
+
+    <div id="controls">
+      <div>
+        <label>Owner: <input id="owner" placeholder="e.g. your-username" /></label>
+      </div>
+      <div>
+        <label>Repo: <input id="repo" placeholder="e.g. your-repo" /></label>
+      </div>
+      <div>
+        <label>Branch: <input id="branch" placeholder="e.g. main" value="main" /></label>
+      </div>
+      <div>
+        <label>Path: <input id="path" placeholder="e.g. README.md" /></label>
+      </div>
+      <div>
+        <button id="open-btn">Open file</button>
+      </div>
+    </div>
+
+    <div id="editor" style="margin-top: 16px; display:none;">
+      <div>
+        <label>Commit message: <input id="commit-message" placeholder="e.g. Update README" /></label>
+      </div>
+      <div>
+        <textarea id="file-content" rows="24" cols="100" placeholder="File content will appear here..."></textarea>
+      </div>
+      <div>
+        <button id="save-btn">Save (Commit)</button>
+      </div>
+    </div>
+
+    <div id="status" style="margin-top: 12px;"></div>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+  </html>
+
+

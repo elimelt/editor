@@ -1,0 +1,6 @@
+node_modules/
+server/.env
+.DS_Store
+
+
+.github/workflows/.env

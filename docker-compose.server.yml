@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  auth-server:
+    container_name: auth-server
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    env_file:
+      - server/.env
+    restart: unless-stopped
+    networks:
+      swecc-network:
+        aliases:
+          - auth-server
+
+networks:
+  swecc-network:
+    external: true
+    name: prod_swecc-network
+
+

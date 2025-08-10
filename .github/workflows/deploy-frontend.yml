@@ -1,0 +1,51 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create config.js from secret
+        run: |
+          mkdir -p frontend
+          if [ -z "${{ secrets.AUTH_SERVER_BASE_URL }}" ]; then
+            echo 'Secret AUTH_SERVER_BASE_URL is not set. Set it to something like https://auth.example.com/api' >&2
+            exit 1
+          fi
+          echo "window.APP_CONFIG = { API_BASE: '${{ secrets.AUTH_SERVER_BASE_URL }}' };" > frontend/config.js
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+
