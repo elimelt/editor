@@ -224,11 +224,14 @@ body {
 .editor-layout > * { transition: transform 220ms ease, opacity 160ms ease; }
 
 .filetree, .editor-card, .preview-card {
-  height: var(--editor-panel-height);
+  height: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+.editor-card { height: 70vh; }
+.filetree { height: 70vh; }
+.preview-card { height: 70vh; }
 .editor-card { min-height: 0; }
 .editor-grid {
   display: grid;

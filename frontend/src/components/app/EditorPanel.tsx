@@ -38,7 +38,7 @@ export function EditorPanel({ open, fileName, language, value, onChange, showPre
               onChange={onChange}
               language={language}
               softWrap={language === 'markdown' || language === 'text'}
-              height={undefined as any}
+              height={'70vh'}
               wrapColumn={wrapColumn}
             />
           </div>
