@@ -104,6 +104,42 @@ export async function putFile(
   return res.json();
 }
 
+export async function createFile(
+  owner: string,
+  repo: string,
+  path: string,
+  branch: string,
+  message: string,
+  contentBase64: string,
+) {
+  const body = { message, content: contentBase64, branch };
+  const res = await githubFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw await errorFromResponse(res);
+  return res.json();
+}
+
+export async function deleteFile(
+  owner: string,
+  repo: string,
+  path: string,
+  branch: string,
+  message: string,
+  sha: string,
+) {
+  const body = { message, branch, sha };
+  const res = await githubFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw await errorFromResponse(res);
+  return res.json();
+}
+
 export function loginRedirect() {
   window.location.href = `${API_BASE}/auth/login`;
 }

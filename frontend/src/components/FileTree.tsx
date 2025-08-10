@@ -17,9 +17,11 @@ type Props = {
   branch: string;
   rootPath?: string;
   onSelectFile: (path: string) => void;
+  onCreate?: (dirPath: string) => void;
+  onDelete?: (filePath: string) => void;
 };
 
-export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile }: Props): JSX.Element {
+export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile, onCreate, onDelete }: Props): JSX.Element {
   const [root, setRoot] = useState<Node>({ name: '/', path: '', type: 'dir', expanded: true, loaded: false });
   const [filter, setFilter] = useState('');
 
@@ -65,7 +67,12 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile }: P
     <div>
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <strong>Files</strong>
-        <TextInput placeholder="Filter files..." value={filter} onChange={(e) => setFilter(e.currentTarget.value)} maw={260} />
+        <div className="row" style={{ gap: 6 }}>
+          <TextInput placeholder="Filter files..." value={filter} onChange={(e) => setFilter(e.currentTarget.value)} maw={260} />
+          {onCreate && (
+            <Button variant="light" onClick={() => onCreate(visibleTree.path || '')}>New</Button>
+          )}
+        </div>
       </div>
       <div className="section" role="tree" aria-label="Repository files">
         <TreeNode node={visibleTree} onToggle={async (n) => {
@@ -73,13 +80,13 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile }: P
             if (!n.loaded) await loadChildren(n);
             setRoot((prev) => applyUpdate(prev, n.path, { expanded: !findNode(prev, n.path)?.expanded }));
           }
-        }} onSelect={(n) => n.type === 'file' && onSelectFile(n.path)} />
+        }} onSelect={(n) => n.type === 'file' && onSelectFile(n.path)} onDelete={onDelete ? (n) => onDelete(n.path) : undefined} />
       </div>
     </div>
   );
 }
 
-function TreeNode({ node, onToggle, onSelect }: { node: Node; onToggle: (n: Node) => void; onSelect: (n: Node) => void }) {
+function TreeNode({ node, onToggle, onSelect, onDelete }: { node: Node; onToggle: (n: Node) => void; onSelect: (n: Node) => void; onDelete?: (n: Node) => void }) {
   const isRoot = node.path === '' && node.type === 'dir';
   const children = node.children || [];
   return (
@@ -96,6 +103,9 @@ function TreeNode({ node, onToggle, onSelect }: { node: Node; onToggle: (n: Node
           <Button variant="light" onClick={() => (node.type === 'dir' ? onToggle(node) : onSelect(node))} style={{ textAlign: 'left' }}>
             {node.name}
           </Button>
+          {node.type === 'file' && onDelete && (
+            <Button variant="subtle" color="red" onClick={() => onDelete(node)} title="Delete">🗑</Button>
+          )}
         </div>
       )}
       {isRoot && children.length === 0 && (
@@ -104,7 +114,7 @@ function TreeNode({ node, onToggle, onSelect }: { node: Node; onToggle: (n: Node
       {node.expanded && children.length > 0 && (
         <div className="section">
           {children.map((c) => (
-            <TreeNode key={c.path} node={c} onToggle={onToggle} onSelect={onSelect} />
+            <TreeNode key={c.path} node={c} onToggle={onToggle} onSelect={onSelect} onDelete={onDelete} />
           ))}
         </div>
       )}

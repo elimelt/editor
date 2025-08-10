@@ -40,7 +40,7 @@ export function DesignSystemProvider({ children }: React.PropsWithChildren): JSX
   return (
     <MantineProvider theme={theme} defaultColorScheme="dark">
       <Global
-        styles={(t: any) => ({
+        styles={{
           ':root': {
             // Dark palette
             '--bg': '#0b0c0f',
@@ -73,15 +73,15 @@ export function DesignSystemProvider({ children }: React.PropsWithChildren): JSX
           'html, body, #root': { height: '100%' },
           body: {
             margin: 0,
-            fontFamily: t.fontFamily,
+            fontFamily: theme.fontFamily,
             color: 'var(--text)',
             background: 'linear-gradient(180deg, var(--bg), #0b0d12 60%)',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
           },
-          p: { margin: `${t.spacing.xs} 0` },
+          p: { margin: `${rem(6)} 0` },
           'h1, h2, h3, h4, h5, h6': {
-            margin: `${t.spacing.sm} 0 ${t.spacing.xs}`,
+            margin: `${rem(10)} 0 ${rem(6)}`,
             letterSpacing: '-0.01em',
           },
           a: { color: 'var(--accent)' },
@@ -90,7 +90,7 @@ export function DesignSystemProvider({ children }: React.PropsWithChildren): JSX
             fontFamily:
               'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
           },
-        })}
+        }}
       />
       {children}
     </MantineProvider>
