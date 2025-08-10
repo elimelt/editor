@@ -243,17 +243,24 @@ body {
 .tree-scroll { border-top: none; padding-top: 0; flex: 1; min-height: 0; }
 .tree-scroll .mantine-ScrollArea-viewport { height: 100%; }
 .preview-card .mantine-ScrollArea-viewport { height: 100%; }
+/* Ensure ScrollArea fills tree panel for consistent scrolling */
+.tree-scroll { border-top: none; padding-top: 0; flex: 1; min-height: 0; display: flex; }
+.tree-scroll .mantine-ScrollArea-root { flex: 1; height: 100%; }
 .cm-scroller { scrollbar-gutter: stable both-edges; }
 
 /* Editor panel fill */
 .editor-stack { height: 100%; }
 .editor-host { flex: 1; min-height: 0; }
+/* Extra breathing room at the bottom so last line isn't cut off */
+.editor-card .cm-scroller { padding-bottom: 16px; }
 .editor-split { display: grid; grid-template-rows: 1fr; gap: 12px; min-height: 0; flex: 1; }
 .editor-split.with-preview { grid-template-rows: 1fr 1fr; }
 .preview-inner { min-height: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: color-mix(in oklab, var(--panel) 85%, transparent); }
 .preview-scroll { height: 100%; }
+/* Keep only the outer scrollbar for preview */
+.preview-card .md-preview { max-height: none; overflow: visible; }
 .editor-layout.tree-hidden .span-full { grid-column: 1 / -1; }
-.tree-list { display: grid; gap: 1px; }
+.tree-list { display: grid; gap: 1px; padding-bottom: 8px; }
 .tree-branch { margin-left: 8px; }
 .tree-branch.root { margin-left: 0; }
 /* .tree-branch reserved for future overrides */

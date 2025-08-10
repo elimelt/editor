@@ -17,7 +17,6 @@ export function HeaderBar({ canToggleFiles, showTree, onToggleFiles, userLogin, 
     <Paper withBorder p="md" radius="md" className="header">
       <Group justify="space-between" wrap="wrap">
         <Group gap="sm">
-          <Title order={2}>GitHub Editor</Title>
           {canToggleFiles && (
             <Button variant="light" onClick={onToggleFiles} title="Toggle file tree (Cmd/Ctrl+B)">
               {showTree ? 'Hide files' : 'Show files'}
