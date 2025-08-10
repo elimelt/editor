@@ -351,10 +351,6 @@ export function App(): JSX.Element {
         e.preventDefault();
         setSettingsOpen(true);
       }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
-        e.preventDefault();
-        setPaletteOpen(true);
-      }
     };
     window.addEventListener('keydown', onKey);
     const openSettings = () => setSettingsOpen(true);

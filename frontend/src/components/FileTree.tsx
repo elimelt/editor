@@ -76,7 +76,7 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile, onC
           )}
         </Group>
       </Group>
-      <ScrollArea className="tree-scroll" type="auto" mah={560}>
+      <ScrollArea className="tree-scroll" type="auto">
         <div className="tree-list" role="tree" aria-label="Repository files">
           <TreeNode node={visibleTree} onToggle={async (n) => {
             if (n.type === 'dir') {
@@ -94,7 +94,7 @@ function TreeNode({ node, onToggle, onSelect, onDelete }: { node: Node; onToggle
   const isRoot = node.path === '' && node.type === 'dir';
   const children = node.children || [];
   return (
-    <div className="tree-branch" style={{ marginLeft: isRoot ? 0 : 12 }}>
+    <div className={`tree-branch ${isRoot ? 'root' : ''}`}>
       {!isRoot && (
         <div className={`tree-row ${node.type}`}>
           {node.type === 'dir' ? (
@@ -116,7 +116,7 @@ function TreeNode({ node, onToggle, onSelect, onDelete }: { node: Node; onToggle
           </button>
           {node.type === 'file' && onDelete && (
             <Tooltip label="Delete" withArrow>
-              <ActionIcon variant="subtle" color="red" onClick={() => onDelete(node)} aria-label="Delete file">🗑</ActionIcon>
+              <ActionIcon variant="subtle" size="sm" color="red" onClick={() => onDelete(node)} aria-label="Delete file">🗑</ActionIcon>
             </Tooltip>
           )}
         </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, TextInput, Group, Button, Stack, Badge, Divider } from '@mantine/core';
+import { Modal, TextInput, Group, Button, Stack, Badge, Divider, Loader } from '@mantine/core';
 import { getRecentFiles, getPinnedRepos, PinnedRepo, RecentFile } from '@/shared/recent';
-import { listDirectory, GitHubDirEntry } from '@/api/github';
+import { listDirectory, GitHubDirEntry, searchRepositories, GitHubSearchRepoItem } from '@/api/github';
 
 type Props = {
   opened: boolean;
@@ -21,6 +21,9 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
   const [pinned, setPinned] = useState<PinnedRepo[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  const [repoResults, setRepoResults] = useState<GitHubSearchRepoItem[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchAbort = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -56,6 +59,29 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
       }
     }
   }, [opened, owner, repo, branch]);
+
+  // Debounced global repo search
+  useEffect(() => {
+    if (!opened) return;
+    const qstr = q.trim();
+    if (!qstr) {
+      setRepoResults([]);
+      setSearchLoading(false);
+      return;
+    }
+    setSearchLoading(true);
+    const handle = setTimeout(async () => {
+      try {
+        const results = await searchRepositories(qstr, 10);
+        setRepoResults(results);
+      } catch {
+        setRepoResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 220);
+    return () => clearTimeout(handle);
+  }, [q, opened]);
 
   useEffect(() => {
     if (opened) {
@@ -93,15 +119,22 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
     >
       <Stack>
         <TextInput
-          placeholder="Type to search (files / recent / pinned). Enter to open first result"
+          placeholder="Search GitHub repos, recent, pinned, or files… Press Enter to open the first result"
           value={q}
           onChange={(e) => setQ(e.currentTarget.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              const first = (owner && repo && filteredFiles[0])
-                ? { type: 'file', v: filteredFiles[0] as string }
-                : (filteredRecent[0] ? { type: 'recent', v: filteredRecent[0] } : (filteredPinned[0] ? { type: 'pinned', v: filteredPinned[0] } : null));
+              const first = (repoResults[0]
+                ? { type: 'repo', v: repoResults[0] }
+                : (owner && repo && filteredFiles[0]
+                  ? { type: 'file', v: filteredFiles[0] as string }
+                  : (filteredRecent[0]
+                    ? { type: 'recent', v: filteredRecent[0] }
+                    : (filteredPinned[0]
+                      ? { type: 'pinned', v: filteredPinned[0] }
+                      : null))));
               if (first) {
+                if (first.type === 'repo') onOpenRepo({ owner: (first.v as any).owner.login, repo: (first.v as any).name, at: Date.now() });
                 if (first.type === 'file') onOpenPath(first.v as string);
                 if (first.type === 'recent') onOpenFile(first.v as any);
                 if (first.type === 'pinned') onOpenRepo(first.v as any);
@@ -116,6 +149,28 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
           <Badge variant="light" onClick={() => { (document.activeElement as HTMLElement)?.blur(); }} style={{ cursor: 'pointer' }}>Dismiss</Badge>
           <Badge variant="light" onClick={() => { const ev = new CustomEvent('open-settings'); window.dispatchEvent(ev); }} style={{ cursor: 'pointer' }}>Open settings</Badge>
         </Group>
+        {/* Global repository search results */}
+        {repoResults.length > 0 && (
+          <>
+            <Group gap="xs" align="center">
+              <Badge variant="light" color="gray">Repos</Badge>
+              {searchLoading && <Loader size="xs" />}
+            </Group>
+            <Group gap="xs" wrap="wrap">
+              {repoResults.map((r) => (
+                <Button
+                  key={r.full_name}
+                  variant="light"
+                  onClick={() => onOpenRepo({ owner: r.owner.login, repo: r.name, at: Date.now() })}
+                  title={r.description || r.full_name}
+                >
+                  {r.full_name}
+                </Button>
+              ))}
+            </Group>
+            <Divider my="xs" />
+          </>
+        )}
         {owner && repo && (
           <>
             <Group gap="xs" wrap="wrap">

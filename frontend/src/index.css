@@ -152,7 +152,7 @@ body {
 .error-boundary { padding: 16px; }
 
 /* Markdown preview styling */
-.md-preview { 
+.md-preview {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px;
@@ -238,9 +238,9 @@ body {
 /* old editor-only layout retained for compatibility but unused */
 
 /* File tree styling */
-.tree-header { margin-bottom: 10px; }
+.tree-header { margin-bottom: 6px; }
 .tree-title { font-weight: 600; letter-spacing: 0.2px; }
-.tree-scroll { border-top: none; padding-top: 0; }
+.tree-scroll { border-top: none; padding-top: 0; flex: 1; min-height: 0; }
 .tree-scroll .mantine-ScrollArea-viewport { height: 100%; }
 .preview-card .mantine-ScrollArea-viewport { height: 100%; }
 .cm-scroller { scrollbar-gutter: stable both-edges; }
@@ -253,19 +253,21 @@ body {
 .preview-inner { min-height: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: color-mix(in oklab, var(--panel) 85%, transparent); }
 .preview-scroll { height: 100%; }
 .editor-layout.tree-hidden .span-full { grid-column: 1 / -1; }
-.tree-list { display: grid; gap: 2px; }
+.tree-list { display: grid; gap: 1px; }
+.tree-branch { margin-left: 8px; }
+.tree-branch.root { margin-left: 0; }
 /* .tree-branch reserved for future overrides */
-.tree-row { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 8px; }
+.tree-row { display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 6px; }
 .tree-row:hover { background: color-mix(in oklab, var(--panel) 85%, transparent); }
 .tree-row.file .tree-name { font-weight: 500; }
-.tree-caret { width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; background: transparent; position: relative; }
-.tree-caret::before { content: ''; position: absolute; inset: 3px 4px; border-left: 6px solid var(--muted); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transform: rotate(0deg); transition: transform .15s ease; }
+.tree-caret { width: 12px; height: 12px; border: 1px solid var(--border); border-radius: 3px; background: transparent; position: relative; }
+.tree-caret::before { content: ''; position: absolute; inset: 2px 3px; border-left: 5px solid var(--muted); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transform: rotate(0deg); transition: transform .12s ease; }
 .tree-caret.open::before { transform: rotate(90deg); }
 .tree-caret.placeholder { border-color: transparent; }
 .tree-caret.placeholder::before { display: none; }
-.tree-name { appearance: none; background: transparent; border: 1px solid transparent; color: var(--text); text-align: left; padding: 6px 8px; border-radius: 6px; cursor: pointer; font: inherit; }
+.tree-name { appearance: none; background: transparent; border: 1px solid transparent; color: var(--text); text-align: left; padding: 4px 6px; border-radius: 6px; cursor: pointer; font: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tree-name:hover { border-color: var(--border); }
-.tree-children { margin-left: 14px; display: grid; gap: 2px; }
+.tree-children { margin-left: 10px; display: grid; gap: 1px; }
 
 /* Shortcut hints overlay */
 .shortcut-hints {

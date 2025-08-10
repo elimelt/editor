@@ -79,6 +79,30 @@ export async function listEditableRepos(limit: number = 30): Promise<GitHubRepo[
   return filtered;
 }
 
+export type GitHubSearchRepoItem = Pick<GitHubRepo, 'name' | 'full_name' | 'owner' | 'description' | 'default_branch'>;
+
+export async function searchRepositories(query: string, limit: number = 10): Promise<GitHubSearchRepoItem[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const search = new URLSearchParams({
+    q,
+    per_page: String(Math.min(Math.max(limit, 1), 50)),
+    sort: 'stars',
+    order: 'desc',
+  });
+  const res = await githubFetch(`/search/repositories?${search.toString()}`);
+  if (!res.ok) throw await errorFromResponse(res);
+  const data = await res.json();
+  const items = Array.isArray(data.items) ? data.items : [];
+  return items.map((i: any) => ({
+    name: i.name,
+    full_name: i.full_name,
+    owner: { login: i.owner?.login || '' },
+    description: i.description,
+    default_branch: i.default_branch || 'main',
+  }));
+}
+
 export async function getFile(owner: string, repo: string, path: string, branch: string): Promise<GitHubContentResponse> {
   const res = await githubFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`);
   if (!res.ok) throw await errorFromResponse(res);
