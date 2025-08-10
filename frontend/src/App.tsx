@@ -625,11 +625,6 @@ export function App(): JSX.Element {
             <span className="kbd">Cmd/Ctrl</span>
             <span className="kbd">,</span>
           </div>
-          <div className="row">
-            <span>Find</span>
-            <span className="kbd">Cmd/Ctrl</span>
-            <span className="kbd">F</span>
-          </div>
         </div>
       )}
       <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create new file" trapFocus>
