@@ -178,10 +178,6 @@ body {
   transition: grid-template-columns 160ms ease;
 }
 
-.md-preview .cm-editor .tree-branch.root {
-  max-height: 65vh;
-}
-
 @media (min-width: 960px) {
   /* Authoritative desktop modes: */
   .editor-layout.mode-tree { grid-template-columns: 260px minmax(0, 1fr) 0; }
@@ -305,4 +301,6 @@ body {
   transform: translateY(0);
 }
 
-
+.md-preview .cm-editor .tree-branch.root {
+  max-height: 65vh;
+}
