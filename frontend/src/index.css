@@ -179,23 +179,24 @@ body {
   transition: grid-template-columns 160ms ease;
 }
 @media (min-width: 960px) {
-  /* Desktop: use two tracks when tree is hidden, three when visible */
-  .editor-layout { grid-template-columns: 260px minmax(0, 1fr) 0; }
-  .editor-layout.with-preview { grid-template-columns: 260px minmax(0, 1fr) minmax(0, 1fr); }
-  .editor-layout.tree-hidden { grid-template-columns: minmax(0, 1fr); }
-  .editor-layout.tree-hidden.with-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .editor-layout.tree-hidden > *:first-child { display: none; }
+  /* Authoritative desktop modes: */
+  .editor-layout.mode-tree { grid-template-columns: 260px minmax(0, 1fr) 0; }
+  .editor-layout.mode-preview { grid-template-columns: 0 minmax(0, 1fr) minmax(0, 1fr); }
+  .editor-layout.mode-editor-only { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  .editor-layout.mode-editor-only > *:first-child,
+  .editor-layout.mode-preview > *:first-child { display: none; }
 }
 
 /* Medium screens: when tree is hidden and preview is enabled, show 2 columns side-by-side */
 @media (min-width: 720px) and (max-width: 959px) {
   .editor-layout { grid-template-columns: 1fr; }
-  .editor-layout.tree-hidden.with-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .editor-layout.mode-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 
 /* Ensure hidden tree does not occupy a grid slot on small/medium screens */
 @media (max-width: 959px) {
-  .editor-layout.tree-hidden > *:first-child { display: none; }
+  .editor-layout.mode-preview > *:first-child,
+  .editor-layout.mode-editor-only > *:first-child { display: none; }
 }
 
 /* Animations wrapper styles for grid children */

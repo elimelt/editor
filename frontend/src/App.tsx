@@ -90,6 +90,12 @@ export function App(): JSX.Element {
 
   const fileName = useMemo(() => (path ? path.split('/').pop() || path : ''), [path]);
 
+  const layoutMode = useMemo(() => {
+    if (showTree) return 'mode-tree';
+    if (showPreview && detectedLanguage === 'markdown') return 'mode-preview';
+    return 'mode-editor-only';
+  }, [showTree, showPreview, detectedLanguage]);
+
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
     setTokenPresent(Boolean(token));
@@ -449,8 +455,8 @@ export function App(): JSX.Element {
       </Paper>
 
       {(owner && repo) && (showTree || openState === 'loaded') && (
-        <div className={`section editor-layout ${showPreview && detectedLanguage === 'markdown' ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
-          <Transition mounted={showTree} transition="slide-right" duration={220} timingFunction="ease">
+        <div className={`section editor-layout ${layoutMode}`}>
+          <Transition mounted={layoutMode === 'mode-tree'} transition="slide-right" duration={220} timingFunction="ease">
             {(styles) => (
               <div style={{ ...styles }}>
                 <Paper withBorder p="md" radius="md" className="filetree" style={{ ...styles }}>
@@ -500,7 +506,7 @@ export function App(): JSX.Element {
             </Stack>
           </Paper>
           )}
-          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="slide-left" duration={220} timingFunction="ease">
+          <Transition mounted={layoutMode === 'mode-preview' && openState === 'loaded'} transition="slide-left" duration={220} timingFunction="ease">
             {(styles) => (
               <div style={{ ...styles }}>
                 <Paper withBorder p="md" radius="md" className="preview-card" style={{ ...styles }}>
