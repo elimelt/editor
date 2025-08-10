@@ -414,9 +414,9 @@ export function App(): JSX.Element {
       )}
 
       <div className={`status ${statusKind}`}>{status}</div>
-      <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create new file">
+      <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create new file" trapFocus>
         <Stack>
-          <TextInput label="Path" placeholder="e.g. docs/README.md" value={newPath} onChange={(e) => setNewPath(e.currentTarget.value)} />
+          <TextInput label="Path" placeholder="e.g. docs/README.md" value={newPath} onChange={(e) => setNewPath(e.currentTarget.value)} autoFocus />
           <Group justify="flex-end">
             <Button onClick={() => setCreateOpen(false)} variant="subtle">Cancel</Button>
             <Button onClick={async () => {

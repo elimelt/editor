@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { EditorState, Extension, Compartment } from '@codemirror/state';
 import { EditorView, keymap, highlightActiveLine, highlightSpecialChars, drawSelection, rectangularSelection, crosshairCursor, lineNumbers } from '@codemirror/view';
 import { defaultHighlightStyle, syntaxHighlighting, indentOnInput } from '@codemirror/language';
-import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
+import { history, defaultKeymap, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { lintKeymap } from '@codemirror/lint';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
@@ -66,6 +66,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
       ...searchKeymap,
       ...completionKeymap,
       ...lintKeymap,
+      indentWithTab,
     ]),
     oneDark,
   ], []);

@@ -21,6 +21,7 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
   const [pinned, setPinned] = useState<PinnedRepo[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  const [autoFocused, setAutoFocused] = useState(false);
 
   useEffect(() => {
     if (opened) {
@@ -75,7 +76,7 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
   }, [files, q]);
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Command palette (Cmd/Ctrl+K)" size="lg">
+    <Modal opened={opened} onClose={onClose} title="Command palette (Cmd/Ctrl+K)" size="lg" withinPortal trapFocus>
       <Stack>
         <TextInput
           placeholder="Type to search (files / recent / pinned). Enter to open first result"
