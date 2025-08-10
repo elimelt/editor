@@ -14,6 +14,8 @@ import {
   import { CodeEditor } from '@/components/CodeEditor';
   import { FileTree } from '@/components/FileTree';
   import { MarkdownPreview } from '@/components/MarkdownPreview';
+  import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea } from '@mantine/core';
+  import { notifications } from '@mantine/notifications';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -165,6 +167,7 @@ export function App(): JSX.Element {
       setSaveState('loaded');
       setStatusKind('success');
       setStatus('Saved successfully.');
+      notifications.show({ color: 'green', title: 'Saved', message: `${owner}/${repo}:${path}` });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -174,10 +177,13 @@ export function App(): JSX.Element {
         if (err.status === 409) setStatus('Conflict: file changed upstream. Re-open to refresh before saving.');
         else if (err.status === 403) setStatus('Forbidden or rate limited. Try again later.');
         else setStatus(`Save failed: ${err.message}`);
+        notifications.show({ color: 'red', title: 'Save failed', message: `${err.status} ${err.statusText}` });
       } else if (err instanceof Error) {
         setStatus(`Save failed: ${err.message}`);
+        notifications.show({ color: 'red', title: 'Save failed', message: err.message });
       } else {
         setStatus('Save failed');
+        notifications.show({ color: 'red', title: 'Save failed', message: 'Unknown error' });
       }
     }
   }, [owner, repo, path, branch, commitMsg, content, sha]);
@@ -204,39 +210,51 @@ export function App(): JSX.Element {
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [dirty]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        void onSave();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onSave]);
+
   return (
-    <div className="container">
-      <div className="card header">
-        <h1 className="title">GitHub Editor</h1>
-        <div className="auth">
-          {user ? (
-            <>
-              <span className="muted">Logged in as {user.login}</span>
-              <button className="btn ghost" onClick={onLogout} title="Clear token">Logout</button>
-            </>
-          ) : (
-            <button className="btn primary" onClick={loginRedirect}>Login with GitHub</button>
-          )}
-        </div>
-      </div>
+    <Container size="lg" py="lg">
+      <Paper withBorder p="md" radius="md" className="header">
+        <Group justify="space-between" wrap="wrap">
+          <Title order={2}>GitHub Editor</Title>
+          <Group>
+            {user ? (
+              <>
+                <Badge variant="light" color="gray">{user.login}</Badge>
+                <Button variant="subtle" onClick={onLogout} title="Clear token">Logout</Button>
+              </>
+            ) : (
+              <Button onClick={loginRedirect}>Login with GitHub</Button>
+            )}
+          </Group>
+        </Group>
+      </Paper>
 
       <hr />
 
-      <div className="card">
+      <Paper withBorder p="md" radius="md" mt="md">
         {!!user && (
           <>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
+            <Group justify="space-between" align="center">
               <strong>Your repos</strong>
-              <input
-                className="input"
+              <TextInput
                 placeholder="Search repos..."
                 value={repoQuery}
-                onChange={(e) => setRepoQuery(e.target.value)}
+                onChange={(e) => setRepoQuery(e.currentTarget.value)}
                 aria-label="Search repositories"
-                style={{ maxWidth: 280 }}
+                maw={320}
               />
-            </div>
-            <div className="section" role="list" aria-label="Editable repositories">
+            </Group>
+            <Group mt="sm" gap="xs" role="list" aria-label="Editable repositories" wrap="wrap">
               {repos
                 .filter((r) => {
                   const q = repoQuery.trim().toLowerCase();
@@ -248,9 +266,9 @@ export function App(): JSX.Element {
                 })
                 .slice(0, 10)
                 .map((r) => (
-                  <button
+                  <Button
                     key={r.fullName}
-                    className="btn"
+                    variant="light"
                     role="listitem"
                     onClick={() => {
                       setOwner(r.owner);
@@ -261,47 +279,36 @@ export function App(): JSX.Element {
                       setStatus(`Selected ${r.fullName}`);
                     }}
                     title={r.desc || r.fullName}
-                    style={{ marginRight: 8, marginBottom: 8 }}
                   >
                     {r.fullName}
-                  </button>
+                  </Button>
                 ))}
               {repos.length === 0 && (
                 <div className="muted">No editable repositories found.</div>
               )}
-            </div>
-            <hr className="section" />
+            </Group>
+            <Divider my="md" />
           </>
         )}
-        <div className="grid">
-          <div className="field">
-            <label htmlFor="owner">Owner</label>
-            <input id="owner" className={`input${!owner ? ' invalid' : ''}`} value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. your-username" />
-          </div>
-          <div className="field">
-            <label htmlFor="repo">Repo</label>
-            <input id="repo" className={`input${!repo ? ' invalid' : ''}`} value={repo} onChange={(e) => setRepo(e.target.value)} placeholder="e.g. your-repo" />
-          </div>
-          <div className="field">
-            <label htmlFor="branch">Branch</label>
-            <input id="branch" className="input" value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="e.g. main" />
-          </div>
-          <div className="field">
-            <label htmlFor="path">Path</label>
-            <input id="path" className={`input${!path ? ' invalid' : ''}`} value={path} onChange={(e) => setPath(e.target.value)} placeholder="e.g. README.md" />
-          </div>
-        </div>
-        <div className="row section">
-          <button className="btn" onClick={() => void onOpen()} disabled={!user || openState === 'loading'}>
-            {openState === 'loading' ? <span className="row"><span className="spinner" /> Opening…</span> : 'Open file'}
-          </button>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <Stack gap={6}>
+            <TextInput label="Owner" id="owner" value={owner} onChange={(e) => setOwner(e.currentTarget.value)} placeholder="e.g. your-username" error={!owner ? 'Required' : undefined} />
+            <TextInput label="Repo" id="repo" value={repo} onChange={(e) => setRepo(e.currentTarget.value)} placeholder="e.g. your-repo" error={!repo ? 'Required' : undefined} />
+          </Stack>
+          <Stack gap={6}>
+            <TextInput label="Branch" id="branch" value={branch} onChange={(e) => setBranch(e.currentTarget.value)} placeholder="e.g. main" />
+            <TextInput label="Path" id="path" value={path} onChange={(e) => setPath(e.currentTarget.value)} placeholder="e.g. README.md" error={!path ? 'Required' : undefined} />
+          </Stack>
+        </SimpleGrid>
+        <Group mt="md" justify="space-between">
+          <Button onClick={() => void onOpen()} loading={openState === 'loading'} disabled={!user}>Open file</Button>
           <span className="muted">Tip: Save with <span className="kbd">Cmd/Ctrl+S</span></span>
-        </div>
-      </div>
+        </Group>
+      </Paper>
 
       {openState === 'loaded' && (
         <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
-          <div className="card filetree">
+          <Paper withBorder p="md" radius="md" className="filetree">
             <FileTree
               owner={owner}
               repo={repo}
@@ -311,44 +318,40 @@ export function App(): JSX.Element {
                 void onOpen(p);
               }}
             />
-          </div>
-          <div className="card editor-card">
-            <div className="field">
-              <label htmlFor="commit">Commit message</label>
-              <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
-            </div>
-            {detectedLanguage === 'markdown' && (
-              <div className="row section" style={{ justifyContent: 'flex-end' }}>
-                <label className="row" style={{ gap: 8 }}>
-                  <input type="checkbox" checked={showPreview} onChange={(e) => setShowPreview(e.target.checked)} />
-                  Split preview
-                </label>
-              </div>
-            )}
-            <div className="section">
-              <CodeEditor
-                value={content}
-                onChange={setContent}
-                language={detectedLanguage}
-                softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
-              />
-            </div>
-            <div className="row section">
-              <button className="btn primary" onClick={onSave} disabled={saveState === 'loading'}>
-                {saveState === 'loading' ? <span className="row"><span className="spinner" /> Saving…</span> : 'Save (Commit)'}
-              </button>
-            </div>
-          </div>
+          </Paper>
+          <Paper withBorder p="md" radius="md" className="editor-card">
+            <Stack>
+              <TextInput label="Commit message" id="commit" value={commitMsg} onChange={(e) => setCommitMsg(e.currentTarget.value)} placeholder="e.g. Update README" />
+              {detectedLanguage === 'markdown' && (
+                <Group justify="flex-end">
+                  <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
+                </Group>
+              )}
+              <ScrollArea h={600} type="auto">
+                <CodeEditor
+                  value={content}
+                  onChange={setContent}
+                  language={detectedLanguage}
+                  softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+                />
+              </ScrollArea>
+              <Group>
+                <Button onClick={onSave} loading={saveState === 'loading'}>Save (Commit)</Button>
+              </Group>
+            </Stack>
+          </Paper>
           {detectedLanguage === 'markdown' && showPreview && (
-            <div className="card preview-card">
-              <MarkdownPreview markdown={content} />
-            </div>
+            <Paper withBorder p="md" radius="md" className="preview-card">
+              <ScrollArea h={600} type="auto">
+                <MarkdownPreview markdown={content} />
+              </ScrollArea>
+            </Paper>
           )}
         </div>
       )}
 
       <div className={`status ${statusKind}`}>{status}</div>
-    </div>
+    </Container>
   );
 }
 

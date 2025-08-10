@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GitHubDirEntry, listDirectory } from '@/api/github';
+import { TextInput, Button, Stack } from '@mantine/core';
 
 type Node = {
   name: string;
@@ -64,7 +65,7 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile }: P
     <div>
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <strong>Files</strong>
-        <input className="input" placeholder="Filter files..." value={filter} onChange={(e) => setFilter(e.target.value)} style={{ maxWidth: 260 }} />
+        <TextInput placeholder="Filter files..." value={filter} onChange={(e) => setFilter(e.currentTarget.value)} maw={260} />
       </div>
       <div className="section" role="tree" aria-label="Repository files">
         <TreeNode node={visibleTree} onToggle={async (n) => {
@@ -86,15 +87,15 @@ function TreeNode({ node, onToggle, onSelect }: { node: Node; onToggle: (n: Node
       {!isRoot && (
         <div className="row" style={{ gap: 6 }}>
           {node.type === 'dir' ? (
-            <button className="btn ghost" type="button" onClick={() => onToggle(node)} title={node.expanded ? 'Collapse' : 'Expand'}>
+            <Button variant="subtle" onClick={() => onToggle(node)} title={node.expanded ? 'Collapse' : 'Expand'}>
               {node.expanded ? '▾' : '▸'}
-            </button>
+            </Button>
           ) : (
             <span style={{ width: 24 }} />
           )}
-          <button className="btn" onClick={() => (node.type === 'dir' ? onToggle(node) : onSelect(node))} style={{ textAlign: 'left' }}>
+          <Button variant="light" onClick={() => (node.type === 'dir' ? onToggle(node) : onSelect(node))} style={{ textAlign: 'left' }}>
             {node.name}
-          </button>
+          </Button>
         </div>
       )}
       {isRoot && children.length === 0 && (

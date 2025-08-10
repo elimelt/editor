@@ -4,6 +4,8 @@ import { App } from './App';
 import { ErrorBoundary } from './shared/ErrorBoundary';
 import './index.css';
 import 'highlight.js/styles/github-dark.css';
+import { MantineProvider, createTheme } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -13,9 +15,12 @@ if (!container) {
 const root = createRoot(container);
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <MantineProvider theme={createTheme({ primaryColor: 'blue', defaultRadius: 'md' })} defaultColorScheme="dark">
+      <Notifications position="top-right" limit={3} />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </MantineProvider>
   </React.StrictMode>
 );
 
