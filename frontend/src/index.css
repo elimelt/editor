@@ -58,7 +58,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -133,6 +133,8 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .section { margin-top: 16px; }
+.section .mantine-TextInput-label { margin-bottom: 6px; }
+.section .mantine-Group-root + .mantine-Group-root { margin-top: 6px; }
 
 .status {
   margin-top: 12px; min-height: 24px; padding: 10px 12px;
@@ -149,7 +151,7 @@ body {
 .error-boundary { padding: 16px; }
 
 /* Markdown preview styling */
-.md-preview {
+.md-preview { 
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px;
@@ -157,6 +159,8 @@ body {
   max-height: 600px;
   overflow: auto;
 }
+.md-preview > :first-child { margin-top: 0; }
+.md-preview > :last-child { margin-bottom: 0; }
 .md-preview h1, .md-preview h2, .md-preview h3 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
 .md-preview pre { background: #0b0d12; padding: 10px; border-radius: 8px; overflow: auto; }
 .md-preview code { font-family: ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
@@ -167,6 +171,7 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
+  align-items: start;
   transition: grid-template-columns 160ms ease;
 }
 @media (min-width: 960px) {
@@ -180,14 +185,16 @@ body {
 @media (min-width: 960px) { .filetree { max-height: 600px; } }
 
 .editor-card, .preview-card { min-height: 40vh; }
+/* Ensure cards align nicely in the grid */
+.filetree, .editor-card, .preview-card { height: fit-content; }
 
 /* Editor-only layout (tree hidden) */
 /* old editor-only layout retained for compatibility but unused */
 
 /* File tree styling */
-.tree-header { margin-bottom: 6px; }
+.tree-header { margin-bottom: 10px; }
 .tree-title { font-weight: 600; letter-spacing: 0.2px; }
-.tree-scroll { border-top: 1px solid var(--border); padding-top: 6px; }
+.tree-scroll { border-top: none; padding-top: 0; }
 .tree-list { display: grid; gap: 2px; }
 .tree-branch { }
 .tree-row { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 8px; }

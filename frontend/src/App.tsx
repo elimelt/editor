@@ -288,7 +288,7 @@ export function App(): JSX.Element {
         </Group>
       </Paper>
 
-      <hr />
+      {/* spacing managed by Paper margins; removed hr to reduce visual clutter */}
 
       <Paper withBorder p="md" radius="md" mt="md">
         {!!user && (
