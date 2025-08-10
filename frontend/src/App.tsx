@@ -118,7 +118,7 @@ export function App(): JSX.Element {
   }, [refreshUser]);
 
   const onOpen = useCallback(async (overridePath?: string) => {
-    if (!owner || !repo || !path) {
+    if (!owner || !repo || !(overridePath || path)) {
       setStatusKind('error');
       setStatus('Owner, repo, and path are required');
       return;
