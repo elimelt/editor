@@ -25,6 +25,13 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   console.warn('Warning: GH_CLIENT_ID or GH_CLIENT_SECRET not set');
 }
 
+// eslint-disable-next-line no-console
+console.log('Auth server config:', {
+  FRONTEND_ORIGIN,
+  REDIRECT_URI,
+  OAUTH_SCOPES,
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
@@ -74,9 +81,22 @@ app.get('/api/auth/callback', async (req, res) => {
       const text = await tokenRes.text();
       return res.status(502).send(`Token exchange failed: ${text}`);
     }
-    const tokenJson = await tokenRes.json();
+    let tokenJson;
+    const ct = tokenRes.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      tokenJson = await tokenRes.json();
+    } else {
+      const raw = await tokenRes.text();
+      try {
+        tokenJson = Object.fromEntries(new URLSearchParams(raw));
+      } catch {
+        tokenJson = { raw };
+      }
+    }
     if (!tokenJson.access_token) {
-      return res.status(502).send('No access token returned');
+      // eslint-disable-next-line no-console
+      console.error('Token exchange error payload:', tokenJson);
+      return res.status(502).send(`No access token returned: ${tokenJson.error_description || tokenJson.error || 'unknown'}`);
     }
 
     // Clear state cookie
