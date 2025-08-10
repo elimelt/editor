@@ -224,13 +224,10 @@ body {
 .editor-layout > * { transition: transform 220ms ease, opacity 160ms ease; }
 
 .filetree, .editor-card, .preview-card {
-  /* all the same height */
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
+  height: var(--editor-panel-height);
   display: flex;
   flex-direction: column;
-  overflow: scroll;
+  overflow: hidden;
 }
 
 /* Removed min-heights to maintain equal panel heights */
@@ -243,7 +240,8 @@ body {
 /* File tree styling */
 .tree-header { margin-bottom: 6px; }
 .tree-title { font-weight: 600; letter-spacing: 0.2px; }
-.tree-scroll { border-top: none; padding-top: 0; flex: 1; min-height: 0; }
+.tree-scroll { border-top: none; padding-top: 0; flex: 1; min-height: 0; display: flex; }
+.tree-scroll .mantine-ScrollArea-root { flex: 1; height: 100%; }
 .tree-scroll .mantine-ScrollArea-viewport { height: 100%; }
 .preview-card .mantine-ScrollArea-viewport { height: 100%; }
 /* Ensure ScrollArea fills tree panel for consistent scrolling */
@@ -256,13 +254,16 @@ body {
 .editor-host { flex: 1; min-height: 0; }
 /* Extra breathing room at the bottom so last line isn't cut off */
 .editor-card .cm-scroller { padding-bottom: 16px; }
+.md-preview { padding-bottom: 16px; }
 .editor-split { display: grid; grid-template-rows: 1fr; gap: 12px; min-height: 0; flex: 1; }
 .editor-split.with-preview { grid-template-rows: 1fr 1fr; }
 .preview-inner { min-height: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: color-mix(in oklab, var(--panel) 85%, transparent); }
 .preview-scroll { height: 100%; }
+/* Keep only the outer scrollbar for preview */
+.preview-card .md-preview { overflow: visible; }
 
 .editor-layout.tree-hidden .span-full { grid-column: 1 / -1; }
-.tree-list { display: grid; gap: 1px; padding-bottom: 8px; }
+.tree-list { display: grid; gap: 1px; padding-bottom: 16px; }
 .tree-branch { margin-left: 8px; }
 .tree-branch.root { margin-left: 0; }
 /* .tree-branch reserved for future overrides */
@@ -301,6 +302,4 @@ body {
   transform: translateY(0);
 }
 
-.md-preview .cm-editor .tree-branch.root {
-  max-height: 65vh;
-}
+/* Removed unintended rule that affected preview layout */
