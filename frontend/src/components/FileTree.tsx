@@ -46,6 +46,12 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile }: P
     setRoot({ name: '/', path: '', type: 'dir', expanded: true, loaded: false });
   }, [owner, repo, branch, rootPath]);
 
+  useEffect(() => {
+    if (owner && repo && !root.loaded) {
+      void loadChildren(root);
+    }
+  }, [owner, repo, branch, root.loaded, loadChildren, root]);
+
   const visibleTree = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return root;
@@ -80,7 +86,7 @@ function TreeNode({ node, onToggle, onSelect }: { node: Node; onToggle: (n: Node
       {!isRoot && (
         <div className="row" style={{ gap: 6 }}>
           {node.type === 'dir' ? (
-            <button className="btn ghost" onClick={() => onToggle(node)} aria-expanded={node.expanded} title={node.expanded ? 'Collapse' : 'Expand'}>
+            <button className="btn ghost" type="button" onClick={() => onToggle(node)} title={node.expanded ? 'Collapse' : 'Expand'}>
               {node.expanded ? '▾' : '▸'}
             </button>
           ) : (
