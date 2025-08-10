@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, Stack, Group, Switch } from '@mantine/core';
+import { Paper, Group, Switch } from '@mantine/core';
 import { CodeEditor } from '@/components/CodeEditor';
 import type { EditorLanguage } from '@/shared/languages';
 
@@ -22,7 +22,7 @@ export function EditorPanel({ open, fileName, language, value, onChange, showPre
   if (!open) return null;
   return (
     <Paper withBorder p="md" radius="md" className="editor-card">
-      <Stack className="editor-stack" gap="sm">
+      <div className="editor-grid">
         {!!fileName && (
           <Group justify="space-between" align="center" className="tree-header">
             <strong className="tree-title">{fileName}</strong>
@@ -31,22 +31,24 @@ export function EditorPanel({ open, fileName, language, value, onChange, showPre
             )}
           </Group>
         )}
-        <div className="editor-host">
-          <CodeEditor
-            value={value}
-            onChange={onChange}
-            language={language}
-            softWrap={language === 'markdown' || language === 'text'}
-            height={undefined as any}
-            wrapColumn={wrapColumn}
-          />
+        <div className="editor-body">
+          <div className="editor-host">
+            <CodeEditor
+              value={value}
+              onChange={onChange}
+              language={language}
+              softWrap={language === 'markdown' || language === 'text'}
+              height={undefined as any}
+              wrapColumn={wrapColumn}
+            />
+          </div>
         </div>
         <Group justify="flex-end">
           <button className="btn" onClick={onSaveClick} disabled={!canSave || isSaving}>
             {isSaving ? 'Saving…' : 'Save (Commit)'}
           </button>
         </Group>
-      </Stack>
+      </div>
     </Paper>
   );
 }
