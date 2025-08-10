@@ -207,9 +207,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
       WebkitOverflowScrolling: 'touch',
     },
     '.cm-content': {
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-      fontVariantLigatures: 'none',
-      letterSpacing: '0',
       tabSize: '4',
       ...(softWrap && typeof wrapColumn === 'number' ? {
         maxWidth: `${wrapColumn}ch`,
@@ -218,19 +215,12 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     },
     '.cm-line': {
       textIndent: '0',
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-      fontVariantLigatures: 'none',
-      letterSpacing: '0',
       position: 'static',
     },
     '.cm-activeLine': {
       position: 'static',
     },
-    '.cm-gutters': {
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-      fontVariantLigatures: 'none',
-      letterSpacing: '0',
-    },
+    '.cm-gutters': {},
   }), [height, softWrap, wrapColumn]);
 
   // Attach theme extension
