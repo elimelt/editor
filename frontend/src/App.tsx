@@ -14,7 +14,7 @@ import {
 import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal, Transition, Drawer } from '@mantine/core';
+import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal, Transition, Drawer, Grid } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -454,31 +454,31 @@ export function App(): JSX.Element {
         </Drawer>
       </Paper>
 
-      {(owner && repo) && (showTree || openState === 'loaded') && (
-        <div className={`section editor-layout ${layoutMode}`}>
-          <Transition mounted={layoutMode === 'mode-tree'} transition="slide-right" duration={220} timingFunction="ease">
-            {(styles) => (
-              <div className="slot-tree" style={{ ...styles }}>
-                <Paper withBorder p="md" radius="md" className="filetree" style={{ ...styles }}>
-                  <FileTree
-                    owner={owner}
-                    repo={repo}
-                    branch={branch}
-                    onSelectFile={(p) => {
-                      setPath(p);
-                      void onOpen(p);
-                    }}
-                    onCreate={() => setCreateOpen(true)}
-                    onDelete={(p) => setDeleteTarget(p)}
-                  />
-                </Paper>
-              </div>
-            )}
-          </Transition>
-          {openState === 'loaded' && (
-          <div className="slot-editor">
-            <Paper withBorder p="md" radius="md" className={`editor-card ${!showTree && !showPreview ? 'span-full' : ''}`}>
-              <Stack className="editor-stack">
+      {(owner && repo) && (
+        <div className="section">
+          <Grid gutter="md" align="stretch">
+            {/* File tree column */}
+            <Grid.Col span={{ base: 12, md: layoutMode === 'mode-tree' ? 5 : 0, lg: layoutMode === 'mode-tree' ? 4 : 0, xl: layoutMode === 'mode-tree' ? 3 : 0 }}>
+              <Paper withBorder p="md" radius="md" className="filetree">
+                <FileTree
+                  owner={owner}
+                  repo={repo}
+                  branch={branch}
+                  onSelectFile={(p) => {
+                    setPath(p);
+                    void onOpen(p);
+                  }}
+                  onCreate={() => setCreateOpen(true)}
+                  onDelete={(p) => setDeleteTarget(p)}
+                />
+              </Paper>
+            </Grid.Col>
+
+            {/* Editor column */}
+            <Grid.Col span={{ base: 12, md: openState === 'loaded' ? 12 : 0, lg: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : 8) : 0, xl: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : 9) : 0 }}>
+              {openState === 'loaded' && (
+              <Paper withBorder p="md" radius="md" className="editor-card">
+                <Stack className="editor-stack">
               {detectedLanguage === 'markdown' && (
                 <Group justify="flex-end">
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
@@ -504,21 +504,22 @@ export function App(): JSX.Element {
                     {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
                   </Button>
                 </Group>
-              </Stack>
-            </Paper>
-          </div>
-          )}
-          <Transition mounted={layoutMode === 'mode-preview' && openState === 'loaded'} transition="slide-left" duration={220} timingFunction="ease">
-            {(styles) => (
-              <div className="slot-preview" style={{ ...styles }}>
-                <Paper withBorder p="md" radius="md" className="preview-card" style={{ ...styles }}>
-                  <ScrollArea className="preview-scroll" type="auto">
-                    <MarkdownPreview markdown={content} />
-                  </ScrollArea>
-                </Paper>
-              </div>
-            )}
-          </Transition>
+                </Stack>
+              </Paper>
+              )}
+            </Grid.Col>
+
+            {/* Preview column */}
+            <Grid.Col span={{ base: 12, md: 0, lg: layoutMode === 'mode-preview' && openState === 'loaded' ? 6 : 0 }}>
+              {(layoutMode === 'mode-preview' && openState === 'loaded') && (
+              <Paper withBorder p="md" radius="md" className="preview-card">
+                <ScrollArea className="preview-scroll" type="auto">
+                  <MarkdownPreview markdown={content} />
+                </ScrollArea>
+              </Paper>
+              )}
+            </Grid.Col>
+          </Grid>
         </div>
       )}
 
