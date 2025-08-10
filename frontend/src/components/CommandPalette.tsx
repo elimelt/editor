@@ -82,7 +82,15 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
   }, [files, q]);
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Command palette (Cmd/Ctrl+K)" size="lg" withinPortal trapFocus>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Command palette (Cmd/Ctrl+K)"
+      size="lg"
+      withinPortal
+      trapFocus
+      onEnterTransitionEnd={() => inputRef.current?.focus()}
+    >
       <Stack>
         <TextInput
           placeholder="Type to search (files / recent / pinned). Enter to open first result"
