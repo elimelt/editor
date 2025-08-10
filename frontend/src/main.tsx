@@ -4,6 +4,7 @@ import { App } from './App';
 import { ErrorBoundary } from './shared/ErrorBoundary';
 import './index.css';
 import 'highlight.js/styles/github-dark.css';
+import 'katex/dist/katex.min.css';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Notifications } from '@mantine/notifications';

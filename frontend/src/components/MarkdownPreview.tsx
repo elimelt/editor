@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { marked } from 'marked';
+import markedKatex from 'marked-katex-extension';
 import hljs from 'highlight.js';
 import DOMPurify from 'dompurify';
 
@@ -11,6 +12,10 @@ export function MarkdownPreview({ markdown }: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const html = useMemo(() => {
+    marked.use(markedKatex({
+      throwOnError: false,
+      output: 'html'
+    } as any));
     marked.setOptions({
       gfm: true,
       breaks: false,
