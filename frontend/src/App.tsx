@@ -88,6 +88,10 @@ export function App(): JSX.Element {
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const commitInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Subtle shortcut hints when Cmd/Ctrl is held outside the editor
+  const [modifierHeld, setModifierHeld] = useState(false);
+  const [focusInEditor, setFocusInEditor] = useState(false);
+
   const fileName = useMemo(() => (path ? path.split('/').pop() || path : ''), [path]);
 
   const layoutMode = useMemo(() => {
@@ -358,6 +362,39 @@ export function App(): JSX.Element {
     return () => window.removeEventListener('keydown', onKey);
   }, [onSave, openConfirmSave, openState, detectedLanguage]);
 
+  // Detect modifier key hold and editor focus to show shortcut hints
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Meta' || e.key === 'Control') {
+        setModifierHeld(true);
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Meta' || e.key === 'Control') {
+        setModifierHeld(false);
+      }
+      // If all keys released, clear state defensively
+      if (!e.ctrlKey && !e.metaKey) setModifierHeld(false);
+    };
+    const handleFocusChange = () => {
+      const active = document.activeElement as HTMLElement | null;
+      const inEditor = Boolean(active?.closest('.cm-editor'));
+      setFocusInEditor(inEditor);
+    };
+    window.addEventListener('keydown', handleKeyDown, { passive: true });
+    window.addEventListener('keyup', handleKeyUp, { passive: true });
+    document.addEventListener('focusin', handleFocusChange, { passive: true });
+    document.addEventListener('focusout', handleFocusChange, { passive: true });
+    // Initialize on mount
+    handleFocusChange();
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown as any);
+      window.removeEventListener('keyup', handleKeyUp as any);
+      document.removeEventListener('focusin', handleFocusChange as any);
+      document.removeEventListener('focusout', handleFocusChange as any);
+    };
+  }, []);
+
   return (
     <Container size="lg" py="lg">
       <Paper withBorder p="md" radius="md" className="header">
@@ -549,6 +586,52 @@ export function App(): JSX.Element {
       )}
 
       <div className={`status ${statusKind}`}>{status}</div>
+      {/* Keyboard shortcut hints: shown when modifier is held outside editor */}
+      {(modifierHeld && !focusInEditor) && (
+        <div className="shortcut-hints show">
+          <div className="row">
+            <span>Save</span>
+            <span className="kbd">Cmd/Ctrl</span>
+            <span className="kbd">S</span>
+          </div>
+          <div className="row">
+            <span>Command palette</span>
+            <span className="kbd">Cmd/Ctrl</span>
+            <span className="kbd">K</span>
+            <span className="muted">or</span>
+            <span className="kbd">P</span>
+          </div>
+          {openState === 'loaded' && (
+            <div className="row">
+              <span>Toggle files</span>
+              <span className="kbd">Cmd/Ctrl</span>
+              <span className="kbd">B</span>
+            </div>
+          )}
+          {(openState === 'loaded' && detectedLanguage === 'markdown') && (
+            <div className="row">
+              <span>Toggle preview</span>
+              <span className="kbd">Cmd/Ctrl</span>
+              <span className="kbd">Alt</span>
+              <span className="kbd">P</span>
+              <span className="muted">or</span>
+              <span className="kbd">Cmd/Ctrl</span>
+              <span className="kbd">Shift</span>
+              <span className="kbd">V</span>
+            </div>
+          )}
+          <div className="row">
+            <span>Settings</span>
+            <span className="kbd">Cmd/Ctrl</span>
+            <span className="kbd">,</span>
+          </div>
+          <div className="row">
+            <span>Find</span>
+            <span className="kbd">Cmd/Ctrl</span>
+            <span className="kbd">F</span>
+          </div>
+        </div>
+      )}
       <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create new file" trapFocus>
         <Stack>
           <TextInput label="Path" placeholder="e.g. docs/README.md" value={newPath} onChange={(e) => setNewPath(e.currentTarget.value)} autoFocus />
