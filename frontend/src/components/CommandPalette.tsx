@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, TextInput, Group, Button, Stack, Badge, Divider } from '@mantine/core';
 import { getRecentFiles, getPinnedRepos, PinnedRepo, RecentFile } from '@/shared/recent';
 import { listDirectory, GitHubDirEntry } from '@/api/github';
@@ -21,7 +21,7 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
   const [pinned, setPinned] = useState<PinnedRepo[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
-  const [autoFocused, setAutoFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (opened) {
@@ -56,6 +56,12 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
       }
     }
   }, [opened, owner, repo, branch]);
+
+  useEffect(() => {
+    if (opened) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [opened]);
 
   const filteredRecent = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -95,11 +101,12 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
             }
           }}
           autoFocus
+          ref={inputRef}
         />
         <Group gap="xs" wrap="wrap">
           <Badge variant="light" onClick={() => onTogglePreview()} style={{ cursor: 'pointer' }}>Toggle preview</Badge>
           <Badge variant="light" onClick={() => { (document.activeElement as HTMLElement)?.blur(); }} style={{ cursor: 'pointer' }}>Dismiss</Badge>
-          <Badge variant="light" onClick={() => { /* open settings via global event; handled in App via keyboard */ const ev = new CustomEvent('open-settings'); window.dispatchEvent(ev); }} style={{ cursor: 'pointer' }}>Open settings</Badge>
+          <Badge variant="light" onClick={() => { const ev = new CustomEvent('open-settings'); window.dispatchEvent(ev); }} style={{ cursor: 'pointer' }}>Open settings</Badge>
         </Group>
         {owner && repo && (
           <>
