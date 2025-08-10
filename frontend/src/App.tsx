@@ -14,7 +14,7 @@ import {
 import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, Title, Divider, Switch, Stack, Badge, ScrollArea, Grid, TextInput } from '@mantine/core';
+import { Container, Paper, Group, Button, Title, Divider, Switch, Stack, Badge, ScrollArea, Grid } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -24,6 +24,7 @@ import { CreateFileModal } from '@/components/app/CreateFileModal';
 import { ConfirmSaveModal } from '@/components/app/ConfirmSaveModal';
 import { DeleteFileModal } from '@/components/app/DeleteFileModal';
 import { ShortcutHints } from '@/components/app/ShortcutHints';
+import { RepoPicker } from '@/components/app/RepoPicker';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -395,68 +396,34 @@ export function App(): JSX.Element {
 
       <Paper withBorder p="md" radius="md" mt="md">
         {!!user && (
-          <>
-            <Group justify="space-between" align="center">
-              <Group>
-                <strong>Your repos</strong>
-                <Button variant="subtle" onClick={() => {
-                  const pins = getPinnedRepos();
-                  setRepos((old) => {
-                    const set = new Set(old.map((o) => `${o.owner}/${o.name}`));
-                    const added = pins.filter((p) => !set.has(`${p.owner}/${p.repo}`)).map((p) => ({ owner: p.owner, name: p.repo, fullName: `${p.owner}/${p.repo}`, defaultBranch: 'main' as string, desc: '' }));
-                    return [...added, ...old];
-                  });
-                }}>Load pins</Button>
-              </Group>
-              <TextInput
-                placeholder="Search repos..."
-                value={repoQuery}
-                onChange={(e) => setRepoQuery(e.currentTarget.value)}
-                aria-label="Search repositories"
-                maw={320}
-              />
-            </Group>
-            <Group mt="sm" gap="xs" role="list" aria-label="Editable repositories" wrap="wrap">
-              {repos
-                .filter((r) => {
-                  const q = repoQuery.trim().toLowerCase();
-                  if (!q) return true;
-                  return (
-                    r.fullName.toLowerCase().includes(q) ||
-                    (r.desc ? r.desc.toLowerCase().includes(q) : false)
-                  );
-                })
-                .slice(0, 10)
-                .map((r) => (
-                  <Group key={r.fullName} gap={4} wrap="nowrap">
-                    <Button
-                      variant="light"
-                      role="listitem"
-                      onClick={() => {
-                        setOwner(r.owner);
-                        setRepo(r.name);
-                        setBranch(r.defaultBranch || 'main');
-                        setStatusKind('info');
-                        setStatus(`Selected ${r.fullName}`);
-                        // Open blank editor with file tree by default
-                        setShowTree(true);
-                        setOpenState('loaded');
-                        setPath('');
-                        setContent('');
-                        setSha('');
-                      }}
-                      title={r.desc || r.fullName}
-                    >
-                      {r.fullName}
-                    </Button>
-                  </Group>
-                ))}
-              {repos.length === 0 && (
-                <div className="muted">No editable repositories found.</div>
-              )}
-            </Group>
-            <Divider my="md" />
-          </>
+          <RepoPicker
+            userLogin={user?.login}
+            repos={repos}
+            repoQuery={repoQuery}
+            setRepoQuery={setRepoQuery}
+            onLoadPins={() => {
+              const pins = getPinnedRepos();
+              setRepos((old) => {
+                const set = new Set(old.map((o) => `${o.owner}/${o.name}`));
+                const added = pins
+                  .filter((p) => !set.has(`${p.owner}/${p.repo}`))
+                  .map((p) => ({ owner: p.owner, name: p.repo, fullName: `${p.owner}/${p.repo}`, defaultBranch: 'main' as string, desc: '' }));
+                return [...added, ...old];
+              });
+            }}
+            onSelectRepo={(r) => {
+              setOwner(r.owner);
+              setRepo(r.name);
+              setBranch(r.defaultBranch || 'main');
+              setStatusKind('info');
+              setStatus(`Selected ${r.fullName}`);
+              setShowTree(true);
+              setOpenState('loaded');
+              setPath('');
+              setContent('');
+              setSha('');
+            }}
+          />
         )}
         <SettingsDrawer
           opened={settingsOpen}
