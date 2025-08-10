@@ -160,6 +160,14 @@ export function App(): JSX.Element {
     }
   }, [openState, detectedLanguage]);
 
+  // Enforce allowed layouts: tree+editor OR editor-only OR editor+preview
+  useEffect(() => {
+    if (showPreview) setShowTree(false);
+  }, [showPreview]);
+  useEffect(() => {
+    if (showTree) setShowPreview(false);
+  }, [showTree]);
+
   const onOpen = useCallback(async (overridePath?: string) => {
     if (!owner || !repo || !(overridePath || path)) {
       setStatusKind('error');
@@ -462,7 +470,7 @@ export function App(): JSX.Element {
             )}
           </Transition>
           {openState === 'loaded' && (
-          <Paper withBorder p="md" radius="md" className={`editor-card ${showTree ? '' : 'span-full'}`}>
+          <Paper withBorder p="md" radius="md" className={`editor-card ${!showTree && !showPreview ? 'span-full' : ''}`}>
             <Stack className="editor-stack">
               {detectedLanguage === 'markdown' && (
                 <Group justify="flex-end">
@@ -474,24 +482,15 @@ export function App(): JSX.Element {
                   <strong className="tree-title">{fileName}</strong>
                 </Group>
               )}
-              <div className={`editor-split ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
-                <div className="editor-host">
-                  <CodeEditor
-                    value={content}
-                    onChange={setContent}
-                    language={detectedLanguage}
-                    softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
-                    height={undefined as any}
-                    wrapColumn={96}
-                  />
-                </div>
-                {detectedLanguage === 'markdown' && showPreview && (
-                  <div className="preview-inner">
-                    <ScrollArea className="preview-scroll" type="auto">
-                      <MarkdownPreview markdown={content} />
-                    </ScrollArea>
-                  </div>
-                )}
+              <div className="editor-host">
+                <CodeEditor
+                  value={content}
+                  onChange={setContent}
+                  language={detectedLanguage}
+                  softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+                  height={undefined as any}
+                  wrapColumn={96}
+                />
               </div>
               <Group>
                 <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
@@ -501,6 +500,17 @@ export function App(): JSX.Element {
             </Stack>
           </Paper>
           )}
+          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="slide-left" duration={160} timingFunction="ease-out" keepMounted>
+            {(styles) => (
+              <div style={styles}>
+                <Paper withBorder p="md" radius="md" className="preview-card">
+                  <ScrollArea className="preview-scroll" type="auto">
+                    <MarkdownPreview markdown={content} />
+                  </ScrollArea>
+                </Paper>
+              </div>
+            )}
+          </Transition>
         </div>
       )}
 
