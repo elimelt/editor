@@ -14,7 +14,7 @@ import {
 import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea } from '@mantine/core';
+import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -59,6 +59,9 @@ export function App(): JSX.Element {
 
   const [showPreview, setShowPreview] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newPath, setNewPath] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
@@ -338,6 +341,8 @@ export function App(): JSX.Element {
                 setPath(p);
                 void onOpen(p);
               }}
+              onCreate={() => setCreateOpen(true)}
+              onDelete={(p) => setDeleteTarget(p)}
             />
           </Paper>
           <Paper withBorder p="md" radius="md" className="editor-card">
@@ -372,6 +377,50 @@ export function App(): JSX.Element {
       )}
 
       <div className={`status ${statusKind}`}>{status}</div>
+      <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create new file">
+        <Stack>
+          <TextInput label="Path" placeholder="e.g. docs/README.md" value={newPath} onChange={(e) => setNewPath(e.currentTarget.value)} />
+          <Group justify="flex-end">
+            <Button onClick={() => setCreateOpen(false)} variant="subtle">Cancel</Button>
+            <Button onClick={async () => {
+              if (!owner || !repo || !newPath.trim()) return;
+              try {
+                const initialContent = '';
+                const { createFile, toBase64Unicode } = await import('@/api/github');
+                await createFile(owner, repo, newPath.trim(), branch || 'main', `Create ${newPath.trim()}`, toBase64Unicode(initialContent));
+                setCreateOpen(false);
+                setPath(newPath.trim());
+                setContent(initialContent);
+                setSha('');
+                notifications.show({ color: 'green', title: 'Created', message: newPath.trim() });
+              } catch (e) {
+                notifications.show({ color: 'red', title: 'Create failed', message: e instanceof Error ? e.message : 'Error' });
+              }
+            }} disabled={!newPath.trim()}>Create</Button>
+          </Group>
+        </Stack>
+      </Modal>
+      <Modal opened={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete file?">
+        <Stack>
+          <div>Are you sure you want to delete <strong>{deleteTarget}</strong>?</div>
+          <Group justify="flex-end">
+            <Button onClick={() => setDeleteTarget(null)} variant="subtle">Cancel</Button>
+            <Button color="red" onClick={async () => {
+              if (!owner || !repo || !deleteTarget || !sha) return;
+              try {
+                const { deleteFile } = await import('@/api/github');
+                await deleteFile(owner, repo, deleteTarget, branch || 'main', `Delete ${deleteTarget}`, sha);
+                notifications.show({ color: 'green', title: 'Deleted', message: deleteTarget });
+                setDeleteTarget(null);
+                setContent('');
+                setSha(null);
+              } catch (e) {
+                notifications.show({ color: 'red', title: 'Delete failed', message: e instanceof Error ? e.message : 'Error' });
+              }
+            }}>Delete</Button>
+          </Group>
+        </Stack>
+      </Modal>
       <CommandPalette
         opened={paletteOpen}
         onClose={() => setPaletteOpen(false)}
