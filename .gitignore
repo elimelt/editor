@@ -2,5 +2,5 @@ node_modules/
 server/.env
 .DS_Store
 
-
+dist/
 .github/workflows/.env
