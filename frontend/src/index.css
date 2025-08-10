@@ -195,7 +195,7 @@ body {
 }
 .editor-layout > .slot-tree > .mantine-Paper-root,
 .editor-layout > .slot-editor > .mantine-Paper-root,
-.editor-layout > .slot-preview > .mantine-Paper-root { height: 100%; }
+.editor-layout > .slot-preview > .mantine-Paper-root { height: 85vh; }
 
 /* The editor slot defines the row height; others match via 100% */
 .slot-editor { --panel-height: 70vh; }
