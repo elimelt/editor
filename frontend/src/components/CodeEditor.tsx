@@ -201,7 +201,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     '.cm-scroller': {
       overflow: 'auto',
       height: '100%',
-      position: 'static',
       WebkitOverflowScrolling: 'touch',
     },
     '.cm-content': {
@@ -213,10 +212,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     },
     '.cm-line': {
       textIndent: '0',
-      position: 'static',
-    },
-    '.cm-activeLine': {
-      position: 'static',
     },
     '.cm-gutters': {},
   }), [height, softWrap, wrapColumn]);
