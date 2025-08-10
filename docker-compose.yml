@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile.server
     env_file:
       - server/.env
+    environment:
+      - LOG_LEVEL=info
     restart: unless-stopped
     ports:
       - '3000:3000'

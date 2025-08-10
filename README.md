@@ -15,6 +15,17 @@ Architecture
 Security note
 For prototyping, we return the access token to the SPA via URL hash. For production hardening, migrate to PKCE or short-lived server tokens. The auth server remains strictly auth-only.
 
+Logging
+- Structured JSON logs with request IDs. Each log line is a single JSON object written to stdout.
+- Log levels: trace, debug, info, warn, error (default: info). Configure with `LOG_LEVEL`.
+- Sensitive fields are redacted automatically (e.g., authorization, cookie, token, client_secret).
+- Common events:
+  - `server_config`, `server_listening`
+  - `request_completed` (includes statusCode and durationMs)
+  - `oauth_login_redirect`, `oauth_callback_received`
+  - `oauth_token_exchange_failed`, `oauth_no_access_token`, `oauth_success_redirect`
+  - `unhandled_rejection`, `uncaught_exception`
+
 Prerequisites
 - Docker and Docker Compose
 - A GitHub OAuth App (Client ID/Secret)
@@ -37,6 +48,8 @@ Configure environment
    FRONTEND_ORIGIN=http://localhost:8080
    GH_REDIRECT_URI=http://localhost:8080/api/auth/callback
    GH_OAUTH_SCOPES=read:user user:email public_repo
+   # Optional logging level: trace | debug | info | warn | error
+   LOG_LEVEL=info
 
 Run locally with Docker (both services together)
 1) Build and start:
@@ -62,6 +75,7 @@ Deploying
   - Set server env:
     - `FRONTEND_ORIGIN=https://<username>.github.io/<repo>/`
     - `GH_REDIRECT_URI=https://<your-auth-server-domain>/api/auth/callback`
+    - `LOG_LEVEL=info` (recommended)
   - Start server-only stack on your VM:
     docker compose -f docker-compose.server.yml up -d --build
 
