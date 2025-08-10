@@ -13,6 +13,7 @@ import {
 } from '@/api/github';
   import { CodeEditor } from '@/components/CodeEditor';
   import { FileTree } from '@/components/FileTree';
+  import { MarkdownPreview } from '@/components/MarkdownPreview';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -51,6 +52,8 @@ export function App(): JSX.Element {
     if (lower.endsWith('.py')) return 'python';
     return 'text';
   }, [path]);
+
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
@@ -96,7 +99,7 @@ export function App(): JSX.Element {
     void refreshUser();
   }, [refreshUser]);
 
-  const onOpen = useCallback(async () => {
+  const onOpen = useCallback(async (overridePath?: string) => {
     if (!owner || !repo || !path) {
       setStatusKind('error');
       setStatus('Owner, repo, and path are required');
@@ -107,14 +110,14 @@ export function App(): JSX.Element {
     setStatus('Opening file...');
     setSha(null);
     try {
-      const data = await getFile(owner.trim(), repo.trim(), path.trim(), branch.trim() || 'main');
+      const data = await getFile(owner.trim(), repo.trim(), (overridePath || path).trim(), branch.trim() || 'main');
       if (!data || !data.content) throw new Error('No content returned');
       setSha(data.sha);
       const text = fromBase64Unicode(String(data.content).replace(/\n/g, ''));
       setContent(text);
       setOpenState('loaded');
       setStatusKind('success');
-      setStatus(`Opened ${owner}/${repo}@${branch}:${path}`);
+      setStatus(`Opened ${owner}/${repo}@${branch}:${overridePath || path}`);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -289,7 +292,7 @@ export function App(): JSX.Element {
           </div>
         </div>
         <div className="row section">
-          <button className="btn" onClick={onOpen} disabled={!user || openState === 'loading'}>
+          <button className="btn" onClick={() => void onOpen()} disabled={!user || openState === 'loading'}>
             {openState === 'loading' ? <span className="row"><span className="spinner" /> Opening…</span> : 'Open file'}
           </button>
           <span className="muted">Tip: Save with <span className="kbd">Cmd/Ctrl+S</span></span>
@@ -297,7 +300,7 @@ export function App(): JSX.Element {
       </div>
 
       {openState === 'loaded' && (
-        <div className="section" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
+        <div className="section" style={{ display: 'grid', gridTemplateColumns: detectedLanguage === 'markdown' && showPreview ? '280px 1fr 1fr' : '280px 1fr', gap: 16 }}>
           <div className="card" style={{ overflow: 'auto', maxHeight: 600 }}>
             <FileTree
               owner={owner}
@@ -305,7 +308,7 @@ export function App(): JSX.Element {
               branch={branch}
               onSelectFile={(p) => {
                 setPath(p);
-                void onOpen();
+                void onOpen(p);
               }}
             />
           </div>
@@ -314,6 +317,14 @@ export function App(): JSX.Element {
               <label htmlFor="commit">Commit message</label>
               <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
             </div>
+            {detectedLanguage === 'markdown' && (
+              <div className="row section" style={{ justifyContent: 'flex-end' }}>
+                <label className="row" style={{ gap: 8 }}>
+                  <input type="checkbox" checked={showPreview} onChange={(e) => setShowPreview(e.target.checked)} />
+                  Split preview
+                </label>
+              </div>
+            )}
             <div className="section">
               <CodeEditor
                 value={content}
@@ -328,6 +339,11 @@ export function App(): JSX.Element {
               </button>
             </div>
           </div>
+          {detectedLanguage === 'markdown' && showPreview && (
+            <div className="card">
+              <MarkdownPreview markdown={content} />
+            </div>
+          )}
         </div>
       )}
 
