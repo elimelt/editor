@@ -30,7 +30,7 @@ jobs:
             echo 'Secret AUTH_SERVER_BASE_URL is not set. Set it to something like https://auth.example.com/api' >&2
             exit 1
           fi
-          echo "window.APP_CONFIG = { API_BASE: '${{ secrets.AUTH_SERVER_BASE_URL }}' };" > frontend/config.js
+          echo "window.APP_CONFIG = { API_BASE: "${{ secrets.AUTH_SERVER_BASE_URL }}"" };" > frontend/config.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
