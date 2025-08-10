@@ -96,6 +96,11 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
           }}
           autoFocus
         />
+        <Group gap="xs" wrap="wrap">
+          <Badge variant="light" onClick={() => onTogglePreview()} style={{ cursor: 'pointer' }}>Toggle preview</Badge>
+          <Badge variant="light" onClick={() => { (document.activeElement as HTMLElement)?.blur(); }} style={{ cursor: 'pointer' }}>Dismiss</Badge>
+          <Badge variant="light" onClick={() => { /* open settings via global event; handled in App via keyboard */ const ev = new CustomEvent('open-settings'); window.dispatchEvent(ev); }} style={{ cursor: 'pointer' }}>Open settings</Badge>
+        </Group>
         {owner && repo && (
           <>
             <Group gap="xs" wrap="wrap">

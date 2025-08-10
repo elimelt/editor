@@ -14,7 +14,7 @@ import {
 import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal, Transition } from '@mantine/core';
+import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal, Transition, Drawer } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -60,6 +60,7 @@ export function App(): JSX.Element {
   const [showPreview, setShowPreview] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [showTree, setShowTree] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newPath, setNewPath] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -237,12 +238,22 @@ export function App(): JSX.Element {
         e.preventDefault();
         setPaletteOpen(true);
       }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
         setShowTree((v) => !v);
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+        e.preventDefault();
+        setSettingsOpen(true);
+      }
     };
     window.addEventListener('keydown', onKey);
+    const openSettings = () => setSettingsOpen(true);
+    window.addEventListener('open-settings' as any, openSettings);
     return () => window.removeEventListener('keydown', onKey);
   }, [onSave]);
 
@@ -259,7 +270,8 @@ export function App(): JSX.Element {
             )}
           </Group>
           <Group>
-            <Button variant="light" onClick={() => setPaletteOpen(true)} title="Command palette (Cmd/Ctrl+K)">Command palette</Button>
+            <Button variant="light" onClick={() => setPaletteOpen(true)} title="Command palette (Cmd/Ctrl+K or Cmd/Ctrl+P)">Command palette</Button>
+            <Button variant="subtle" onClick={() => setSettingsOpen(true)} title="Settings (Cmd/Ctrl+,)">Settings</Button>
             {user ? (
               <>
                 <Badge variant="light" color="gray">{user.login}</Badge>
@@ -335,20 +347,24 @@ export function App(): JSX.Element {
             <Divider my="md" />
           </>
         )}
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-          <Stack gap={6}>
-            <TextInput label="Owner" id="owner" value={owner} onChange={(e) => setOwner(e.currentTarget.value)} placeholder="e.g. your-username" error={!owner ? 'Required' : undefined} />
-            <TextInput label="Repo" id="repo" value={repo} onChange={(e) => setRepo(e.currentTarget.value)} placeholder="e.g. your-repo" error={!repo ? 'Required' : undefined} />
+        <Drawer opened={settingsOpen} onClose={() => setSettingsOpen(false)} title="Repository & file" size="md" position="right" trapFocus>
+          <Stack>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              <Stack gap={6}>
+                <TextInput label="Owner" id="owner" value={owner} onChange={(e) => setOwner(e.currentTarget.value)} placeholder="e.g. your-username" autoFocus />
+                <TextInput label="Repo" id="repo" value={repo} onChange={(e) => setRepo(e.currentTarget.value)} placeholder="e.g. your-repo" />
+              </Stack>
+              <Stack gap={6}>
+                <TextInput label="Branch" id="branch" value={branch} onChange={(e) => setBranch(e.currentTarget.value)} placeholder="e.g. main" />
+                <TextInput label="Path" id="path" value={path} onChange={(e) => setPath(e.currentTarget.value)} placeholder="e.g. README.md" />
+              </Stack>
+            </SimpleGrid>
+            <Group justify="space-between">
+              <Button variant="subtle" onClick={() => setSettingsOpen(false)}>Close</Button>
+              <Button onClick={() => { void onOpen(); setSettingsOpen(false); }} disabled={!user || !owner || !repo || !path}>Open file</Button>
+            </Group>
           </Stack>
-          <Stack gap={6}>
-            <TextInput label="Branch" id="branch" value={branch} onChange={(e) => setBranch(e.currentTarget.value)} placeholder="e.g. main" />
-            <TextInput label="Path" id="path" value={path} onChange={(e) => setPath(e.currentTarget.value)} placeholder="e.g. README.md" error={!path ? 'Required' : undefined} />
-          </Stack>
-        </SimpleGrid>
-        <Group mt="md" justify="space-between">
-          <Button onClick={() => void onOpen()} loading={openState === 'loading'} disabled={!user || !owner || !repo || !path}>Open file</Button>
-          <span className="muted">Tip: Save with <span className="kbd">Cmd/Ctrl+S</span></span>
-        </Group>
+        </Drawer>
       </Paper>
 
       {(owner && repo) && (showTree || openState === 'loaded') && (
