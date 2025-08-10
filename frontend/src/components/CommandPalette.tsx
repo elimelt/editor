@@ -77,7 +77,24 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
   return (
     <Modal opened={opened} onClose={onClose} title="Command palette (Cmd/Ctrl+K)" size="lg">
       <Stack>
-        <TextInput placeholder="Search files, recent, or pinned..." value={q} onChange={(e) => setQ(e.currentTarget.value)} autoFocus />
+        <TextInput
+          placeholder="Type to search (files / recent / pinned). Enter to open first result"
+          value={q}
+          onChange={(e) => setQ(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const first = (owner && repo && filteredFiles[0])
+                ? { type: 'file', v: filteredFiles[0] as string }
+                : (filteredRecent[0] ? { type: 'recent', v: filteredRecent[0] } : (filteredPinned[0] ? { type: 'pinned', v: filteredPinned[0] } : null));
+              if (first) {
+                if (first.type === 'file') onOpenPath(first.v as string);
+                if (first.type === 'recent') onOpenFile(first.v as any);
+                if (first.type === 'pinned') onOpenRepo(first.v as any);
+              }
+            }
+          }}
+          autoFocus
+        />
         {owner && repo && (
           <>
             <Group gap="xs" wrap="wrap">
@@ -86,7 +103,7 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
             </Group>
             <Group gap="xs" wrap="wrap">
               {filteredFiles.map((p) => (
-                <Button key={p} variant="subtle" onClick={() => onOpenPath(p)}>{p}</Button>
+                <Button key={p} variant="subtle" onClick={() => onOpenPath(p)} title={p}>{p}</Button>
               ))}
             </Group>
             <Divider my="xs" />

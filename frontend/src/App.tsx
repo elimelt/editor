@@ -346,13 +346,13 @@ export function App(): JSX.Element {
           </Stack>
         </SimpleGrid>
         <Group mt="md" justify="space-between">
-          <Button onClick={() => void onOpen()} loading={openState === 'loading'} disabled={!user}>Open file</Button>
+          <Button onClick={() => void onOpen()} loading={openState === 'loading'} disabled={!user || !owner || !repo || !path}>Open file</Button>
           <span className="muted">Tip: Save with <span className="kbd">Cmd/Ctrl+S</span></span>
         </Group>
       </Paper>
 
       {openState === 'loaded' && (
-        <div className={`section ${showTree ? 'editor-layout' : 'editor-only'} ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
+        <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
           <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
             {(styles) => (
               <div style={styles}>
@@ -389,17 +389,25 @@ export function App(): JSX.Element {
                 />
               </ScrollArea>
               <Group>
-                <Button onClick={onSave} loading={saveState === 'loading'}>Save (Commit)</Button>
+                <Button onClick={onSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
+                  {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
+                </Button>
               </Group>
             </Stack>
           </Paper>
-          {detectedLanguage === 'markdown' && showPreview && (
-            <Paper withBorder p="md" radius="md" className="preview-card">
-              <ScrollArea h={600} type="auto">
-                <MarkdownPreview markdown={content} />
-              </ScrollArea>
-            </Paper>
-          )}
+          <Transition mounted={detectedLanguage === 'markdown' && showPreview} transition="fade" duration={140} timingFunction="ease-out">
+            {(styles) => (
+              <div style={styles}>
+                {detectedLanguage === 'markdown' && showPreview && (
+                  <Paper withBorder p="md" radius="md" className="preview-card">
+                    <ScrollArea h={600} type="auto">
+                      <MarkdownPreview markdown={content} />
+                    </ScrollArea>
+                  </Paper>
+                )}
+              </div>
+            )}
+          </Transition>
         </div>
       )}
 
@@ -427,12 +435,12 @@ export function App(): JSX.Element {
           </Group>
         </Stack>
       </Modal>
-      <Modal opened={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete file?">
+      <Modal opened={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete file?" withCloseButton={false}>
         <Stack>
-          <div>Are you sure you want to delete <strong>{deleteTarget}</strong>?</div>
+          <div>Are you sure you want to delete <strong>{deleteTarget}</strong>? This cannot be undone.</div>
           <Group justify="flex-end">
             <Button onClick={() => setDeleteTarget(null)} variant="subtle">Cancel</Button>
-            <Button color="red" onClick={async () => {
+            <Button color="red" loading={saveState === 'loading'} onClick={async () => {
               if (!owner || !repo || !deleteTarget || !sha) return;
               try {
                 const { deleteFile } = await import('@/api/github');
@@ -441,6 +449,7 @@ export function App(): JSX.Element {
                 setDeleteTarget(null);
                 setContent('');
                 setSha(null);
+                setOpenState('idle');
               } catch (e) {
                 notifications.show({ color: 'red', title: 'Delete failed', message: e instanceof Error ? e.message : 'Error' });
               }

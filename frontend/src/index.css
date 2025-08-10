@@ -167,10 +167,13 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
+  transition: grid-template-columns 160ms ease;
 }
 @media (min-width: 960px) {
   .editor-layout { grid-template-columns: 260px 1fr; }
   .editor-layout.with-preview { grid-template-columns: 260px 1fr 1fr; }
+  .editor-layout.tree-hidden { grid-template-columns: 0px 1fr; }
+  .editor-layout.with-preview.tree-hidden { grid-template-columns: 0px 1fr 1fr; }
 }
 
 .filetree { overflow: auto; max-height: 40vh; }
@@ -179,13 +182,6 @@ body {
 .editor-card, .preview-card { min-height: 40vh; }
 
 /* Editor-only layout (tree hidden) */
-.editor-only {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-@media (min-width: 960px) {
-  .editor-only.with-preview { grid-template-columns: 1fr 1fr; }
-}
+/* old editor-only layout retained for compatibility but unused */
 
 
