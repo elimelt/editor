@@ -417,7 +417,7 @@ export function App(): JSX.Element {
         </Drawer>
       </Paper>
 
-      {(owner && repo) && (openState !== 'idle') && (showTree || openState === 'loaded') && (
+      {(owner && repo) && (showTree || openState === 'loaded') && (
         <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
           <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
             {() => (
