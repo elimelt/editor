@@ -169,69 +169,39 @@ body {
 .md-preview code { font-family: ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
 .md-preview blockquote { border-left: 4px solid var(--border); padding-left: 10px; color: var(--muted); }
 
-/* Responsive editor layout */
+/* Editor layout reflow-free grid with equal-height rows */
 .editor-layout {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-  align-items: start;
-  transition: grid-template-columns 160ms ease;
+  align-items: stretch;
 }
-
-@media (min-width: 960px) {
-  /* Authoritative desktop modes: */
-  .editor-layout.mode-tree { grid-template-columns: 260px minmax(0, 1fr) 0; }
-  .editor-layout.mode-preview { grid-template-columns: 0 minmax(0, 1fr) minmax(0, 1fr); }
-  .editor-layout.mode-editor-only { grid-template-columns: 0 minmax(0, 1fr) 0; }
-  /* Keep slots by position so editor is always the middle column */
-  .editor-layout .slot-tree { grid-column: 1; }
-  .editor-layout .slot-editor { grid-column: 2; }
-  .editor-layout .slot-preview { grid-column: 3; }
-  /* Hide tree slot when not in tree mode */
-  .editor-layout.mode-preview .slot-tree,
-  .editor-layout.mode-editor-only .slot-tree { display: none; }
-  /* Hide preview slot when not in preview mode */
-  .editor-layout.mode-tree .slot-preview,
-  .editor-layout.mode-editor-only .slot-preview { display: none; }
-}
-
-/* Medium screens: when tree is hidden and preview is enabled, show 2 columns side-by-side */
-@media (min-width: 720px) and (max-width: 959px) {
-  /* Medium: support tree+editor and editor+preview side-by-side */
-  .editor-layout.mode-tree { grid-template-columns: 260px minmax(0, 1fr); }
-  .editor-layout.mode-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .editor-layout.mode-editor-only { grid-template-columns: minmax(0, 1fr); }
-  /* Slot placement */
-  .editor-layout.mode-tree .slot-tree { display: block; grid-column: 1; }
-  .editor-layout.mode-tree .slot-editor { grid-column: 2; }
+@media (min-width: 720px) {
+  .editor-layout.mode-tree { grid-template-columns: 260px 1fr; }
+  .editor-layout.mode-preview { grid-template-columns: 1fr 1fr; }
+  .editor-layout.mode-editor-only { grid-template-columns: 1fr; }
+  .editor-layout .slot-tree { display: block; }
+  .editor-layout .slot-preview { display: block; }
+  .editor-layout.mode-editor-only .slot-tree, .editor-layout.mode-editor-only .slot-preview { display: none; }
   .editor-layout.mode-tree .slot-preview { display: none; }
   .editor-layout.mode-preview .slot-tree { display: none; }
-  .editor-layout.mode-preview .slot-editor { grid-column: 1; }
-  .editor-layout.mode-preview .slot-preview { grid-column: 2; }
-  .editor-layout.mode-editor-only .slot-tree, .editor-layout.mode-editor-only .slot-preview { display: none; }
-  .editor-layout.mode-editor-only .slot-editor { grid-column: 1; }
 }
-
-/* Ensure hidden tree does not occupy a grid slot on small/medium screens */
-@media (max-width: 959px) {
-  .editor-layout.mode-preview > *:first-child,
-  .editor-layout.mode-editor-only > *:first-child { display: none; }
-}
-
-/* Animations wrapper styles for grid children */
-.editor-layout .transition-wrapper { display: contents; }
-.editor-layout { transition: grid-template-columns 220ms ease, gap 160ms ease; }
-.editor-layout > * { transition: transform 220ms ease, opacity 160ms ease; }
 
 .filetree, .editor-card, .preview-card {
-  height: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
 }
-.editor-card { height: 70vh; }
-.filetree { height: 70vh; }
-.preview-card { height: 70vh; }
+.editor-layout > .slot-tree > .mantine-Paper-root,
+.editor-layout > .slot-editor > .mantine-Paper-root,
+.editor-layout > .slot-preview > .mantine-Paper-root { height: 100%; }
+
+/* The editor slot defines the row height; others match via 100% */
+.slot-editor { --panel-height: 70vh; }
+.slot-editor > .mantine-Paper-root { height: var(--panel-height); }
+.slot-tree > .mantine-Paper-root,
+.slot-preview > .mantine-Paper-root { height: var(--panel-height); }
 .editor-card { min-height: 0; }
 .editor-grid {
   display: grid;

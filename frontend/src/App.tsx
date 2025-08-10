@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { clearToken, fromBase64Unicode, getFile, getMe, HttpError, listEditableRepos, loginRedirect, putFile, readAccessTokenFromHashOrSession, toBase64Unicode } from '@/api/github';
 import { FileTree } from '@/components/FileTree';
-import { Badge, Button, Container, Grid, Group, Paper, ScrollArea, Stack, Switch, Title } from '@mantine/core';
+import { Badge, Button, Container, Group, Paper, ScrollArea, Stack, Switch, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -199,52 +199,46 @@ export function App(): JSX.Element {
       </Paper>
 
       {(owner && repo) && (
-        <div className="section">
-          <Grid gutter="md" align="stretch">
-            {/* File tree column */}
-            {layoutMode === 'mode-tree' && (
-              <Grid.Col span={{ base: 12, md: 5, lg: 4, xl: 3 }}>
-                <Paper withBorder p="md" radius="md" className="filetree">
-                  <FileTree
-                    owner={owner}
-                    repo={repo}
-                    branch={branch}
-                    onSelectFile={(p) => {
-                      setPath(p);
-                      void onOpen(p);
-                    }}
-                    onCreate={() => setCreateOpen(true)}
-                    onDelete={(p) => setDeleteTarget(p)}
-                  />
-                </Paper>
-              </Grid.Col>
-            )}
-
-            {/* Editor column */}
-            <Grid.Col span={{ base: 12, md: openState === 'loaded' ? 12 : 0, lg: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : layoutMode === 'mode-tree' ? 8 : 12) : 0, xl: openState === 'loaded' ? (layoutMode === 'mode-preview' ? 6 : layoutMode === 'mode-tree' ? 9 : 12) : 0 }}>
-              <EditorPanel
-                open={openState === 'loaded'}
-                fileName={fileName}
-                language={detectedLanguage}
-                value={content}
-                onChange={setContent}
-                showPreviewToggle={detectedLanguage === 'markdown'}
-                showPreview={showPreview}
-                onTogglePreview={(v) => setShowPreview(v)}
-                wrapColumn={detectedLanguage === 'markdown' && showPreview ? undefined : 96}
-                onSaveClick={openConfirmSave}
-                isSaving={saveState === 'loading'}
-                canSave={saveState !== 'loading' && Boolean(sha)}
+        <div className={`section editor-layout ${layoutMode}`}>
+          {/* File tree slot */}
+          <div className="slot-tree">
+            <Paper withBorder p="md" radius="md" className="filetree">
+              <FileTree
+                owner={owner}
+                repo={repo}
+                branch={branch}
+                onSelectFile={(p) => {
+                  setPath(p);
+                  void onOpen(p);
+                }}
+                onCreate={() => setCreateOpen(true)}
+                onDelete={(p) => setDeleteTarget(p)}
               />
-            </Grid.Col>
+            </Paper>
+          </div>
 
-            {/* Preview column */}
-            {(layoutMode === 'mode-preview' && openState === 'loaded') && (
-              <Grid.Col span={{ base: 12, md: 12, lg: 6, xl: 6 }}>
-                <PreviewPanel open={true} markdown={content} />
-              </Grid.Col>
-            )}
-          </Grid>
+          {/* Editor slot */}
+          <div className="slot-editor">
+            <EditorPanel
+              open={openState === 'loaded'}
+              fileName={fileName}
+              language={detectedLanguage}
+              value={content}
+              onChange={setContent}
+              showPreviewToggle={detectedLanguage === 'markdown'}
+              showPreview={showPreview}
+              onTogglePreview={(v) => setShowPreview(v)}
+              wrapColumn={detectedLanguage === 'markdown' && showPreview ? undefined : 96}
+              onSaveClick={openConfirmSave}
+              isSaving={saveState === 'loading'}
+              canSave={saveState !== 'loading' && Boolean(sha)}
+            />
+          </div>
+
+          {/* Preview slot */}
+          <div className="slot-preview">
+            <PreviewPanel open={openState === 'loaded' && layoutMode === 'mode-preview'} markdown={content} />
+          </div>
         </div>
       )}
 
