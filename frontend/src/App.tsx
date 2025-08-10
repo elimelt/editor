@@ -14,10 +14,16 @@ import {
 import { CodeEditor } from '@/components/CodeEditor';
 import { FileTree } from '@/components/FileTree';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
-import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea, Modal, Transition, Drawer, Grid } from '@mantine/core';
+import { Container, Paper, Group, Button, Title, Divider, Switch, Stack, Badge, ScrollArea, Grid, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
 import { CommandPalette } from '@/components/CommandPalette';
+import { useDetectedLanguage } from '@/hooks/useDetectedLanguage';
+import { SettingsDrawer } from '@/components/app/SettingsDrawer';
+import { CreateFileModal } from '@/components/app/CreateFileModal';
+import { ConfirmSaveModal } from '@/components/app/ConfirmSaveModal';
+import { DeleteFileModal } from '@/components/app/DeleteFileModal';
+import { ShortcutHints } from '@/components/app/ShortcutHints';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -43,40 +49,7 @@ export function App(): JSX.Element {
   const [repoQuery, setRepoQuery] = useState('');
 
   const dirty = useMemo(() => openState === 'loaded' && saveState !== 'loading', [openState, saveState]);
-  const detectedLanguage = useMemo<
-    | 'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python'
-    | 'xml' | 'sql' | 'yaml' | 'toml' | 'php' | 'java' | 'go' | 'rust' | 'cpp' | 'sass'
-    | 'shell' | 'ruby' | 'perl' | 'ini' | 'nginx' | 'apache' | 'dockerfile' | 'powershell'
-    | 'text'
-  >(() => {
-    const lower = path.toLowerCase();
-    if (lower.endsWith('.md') || lower.endsWith('.markdown')) return 'markdown';
-    if (lower.endsWith('.ts') || lower.endsWith('.tsx')) return 'typescript';
-    if (lower.endsWith('.js') || lower.endsWith('.jsx')) return 'javascript';
-    if (lower.endsWith('.json')) return 'json';
-    if (lower.endsWith('.html') || lower.endsWith('.htm')) return 'html';
-    if (lower.endsWith('.css')) return 'css';
-    if (lower.endsWith('.py')) return 'python';
-    if (lower.endsWith('.xml')) return 'xml';
-    if (lower.endsWith('.sql')) return 'sql';
-    if (lower.endsWith('.yml') || lower.endsWith('.yaml')) return 'yaml';
-    if (lower.endsWith('.toml')) return 'toml';
-    if (lower.endsWith('.php')) return 'php';
-    if (lower.endsWith('.java')) return 'java';
-    if (lower.endsWith('.go')) return 'go';
-    if (lower.endsWith('.rs')) return 'rust';
-    if (lower.endsWith('.c') || lower.endsWith('.h') || lower.endsWith('.cc') || lower.endsWith('.cpp') || lower.endsWith('.cxx') || lower.endsWith('.hpp')) return 'cpp';
-    if (lower.endsWith('.scss') || lower.endsWith('.sass')) return 'sass';
-    if (lower.endsWith('.sh') || lower.endsWith('.bash') || lower.endsWith('.zsh')) return 'shell';
-    if (lower.endsWith('.rb')) return 'ruby';
-    if (lower.endsWith('.pl')) return 'perl';
-    if (lower.endsWith('.ini') || lower.endsWith('.cfg') || lower.endsWith('.conf')) return 'ini';
-    if (lower.endsWith('nginx.conf')) return 'nginx';
-    if (lower.endsWith('httpd.conf') || lower.includes('/apache2/') || lower.includes('apache')) return 'apache';
-    if (lower.includes('dockerfile') || lower.endsWith('dockerfile')) return 'dockerfile';
-    if (lower.endsWith('.ps1')) return 'powershell';
-    return 'text';
-  }, [path]);
+  const detectedLanguage = useDetectedLanguage(path);
 
   const [showPreview, setShowPreview] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -485,24 +458,20 @@ export function App(): JSX.Element {
             <Divider my="md" />
           </>
         )}
-        <Drawer opened={settingsOpen} onClose={() => setSettingsOpen(false)} title="Repository & file" size="md" position="right" trapFocus>
-          <Stack>
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-              <Stack gap={6}>
-                <TextInput label="Owner" id="owner" value={owner} onChange={(e) => setOwner(e.currentTarget.value)} placeholder="e.g. your-username" autoFocus />
-                <TextInput label="Repo" id="repo" value={repo} onChange={(e) => setRepo(e.currentTarget.value)} placeholder="e.g. your-repo" />
-              </Stack>
-              <Stack gap={6}>
-                <TextInput label="Branch" id="branch" value={branch} onChange={(e) => setBranch(e.currentTarget.value)} placeholder="e.g. main" />
-                <TextInput label="Path" id="path" value={path} onChange={(e) => setPath(e.currentTarget.value)} placeholder="e.g. README.md" />
-              </Stack>
-            </SimpleGrid>
-            <Group justify="space-between">
-              <Button variant="subtle" onClick={() => setSettingsOpen(false)}>Close</Button>
-              <Button onClick={() => { void onOpen(); setSettingsOpen(false); }} disabled={!user || !owner || !repo || !path}>Open file</Button>
-            </Group>
-          </Stack>
-        </Drawer>
+        <SettingsDrawer
+          opened={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          owner={owner}
+          setOwner={setOwner}
+          repo={repo}
+          setRepo={setRepo}
+          branch={branch}
+          setBranch={setBranch}
+          path={path}
+          setPath={setPath}
+          onOpenFile={() => { void onOpen(); setSettingsOpen(false); }}
+          canOpen={Boolean(user && owner && repo && path)}
+        />
       </Paper>
 
       {(owner && repo) && (
@@ -582,122 +551,64 @@ export function App(): JSX.Element {
 
       <div className={`status ${statusKind}`}>{status}</div>
       {/* Keyboard shortcut hints: shown when modifier is held outside editor */}
-      {(modifierHeld && !focusInEditor) && (
-        <div className="shortcut-hints show">
-          <div className="row">
-            <span>Save</span>
-            <span className="kbd">Cmd/Ctrl</span>
-            <span className="kbd">S</span>
-          </div>
-          <div className="row">
-            <span>Command palette</span>
-            <span className="kbd">Cmd/Ctrl</span>
-            <span className="kbd">K</span>
-            <span className="muted">or</span>
-            <span className="kbd">P</span>
-          </div>
-          {openState === 'loaded' && (
-            <div className="row">
-              <span>Toggle files</span>
-              <span className="kbd">Cmd/Ctrl</span>
-              <span className="kbd">B</span>
-            </div>
-          )}
-          {(openState === 'loaded' && detectedLanguage === 'markdown') && (
-            <div className="row">
-              <span>Toggle preview</span>
-              <span className="kbd">Cmd/Ctrl</span>
-              <span className="kbd">Alt</span>
-              <span className="kbd">P</span>
-              <span className="muted">or</span>
-              <span className="kbd">Cmd/Ctrl</span>
-              <span className="kbd">Shift</span>
-              <span className="kbd">V</span>
-            </div>
-          )}
-          <div className="row">
-            <span>Settings</span>
-            <span className="kbd">Cmd/Ctrl</span>
-            <span className="kbd">,</span>
-          </div>
-        </div>
-      )}
-      <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create new file" trapFocus>
-        <Stack>
-          <TextInput label="Path" placeholder="e.g. docs/README.md" value={newPath} onChange={(e) => setNewPath(e.currentTarget.value)} autoFocus />
-          <Group justify="flex-end">
-            <Button onClick={() => setCreateOpen(false)} variant="subtle">Cancel</Button>
-            <Button onClick={async () => {
-              if (!owner || !repo || !newPath.trim()) return;
-              try {
-                const initialContent = '';
-                const { createFile, toBase64Unicode } = await import('@/api/github');
-                await createFile(owner, repo, newPath.trim(), branch || 'main', `Create ${newPath.trim()}`, toBase64Unicode(initialContent));
-                setCreateOpen(false);
-                setPath(newPath.trim());
-                setContent(initialContent);
-                setSha('');
-                notifications.show({ color: 'green', title: 'Created', message: newPath.trim() });
-              } catch (e) {
-                notifications.show({ color: 'red', title: 'Create failed', message: e instanceof Error ? e.message : 'Error' });
-              }
-            }} disabled={!newPath.trim()}>Create</Button>
-          </Group>
-        </Stack>
-      </Modal>
-      <Modal
+      <ShortcutHints
+        show={modifierHeld && !focusInEditor}
+        showToggleFiles={openState === 'loaded'}
+        showTogglePreview={openState === 'loaded' && detectedLanguage === 'markdown'}
+      />
+      <CreateFileModal
+        opened={createOpen}
+        onClose={() => setCreateOpen(false)}
+        newPath={newPath}
+        setNewPath={setNewPath}
+        onCreate={async () => {
+          if (!owner || !repo || !newPath.trim()) return;
+          try {
+            const initialContent = '';
+            const { createFile, toBase64Unicode } = await import('@/api/github');
+            await createFile(owner, repo, newPath.trim(), branch || 'main', `Create ${newPath.trim()}`, toBase64Unicode(initialContent));
+            setCreateOpen(false);
+            setPath(newPath.trim());
+            setContent(initialContent);
+            setSha('');
+            notifications.show({ color: 'green', title: 'Created', message: newPath.trim() });
+          } catch (e) {
+            notifications.show({ color: 'red', title: 'Create failed', message: e instanceof Error ? e.message : 'Error' });
+          }
+        }}
+        canCreate={Boolean(newPath.trim())}
+      />
+      <ConfirmSaveModal
         opened={confirmSaveOpen}
         onClose={() => setConfirmSaveOpen(false)}
-        title="Commit changes"
-        trapFocus
-        onEnterTransitionEnd={() => commitInputRef.current?.focus()}
-      >
-        <Stack>
-          <TextInput
-            label="Commit message"
-            id="commit"
-            value={commitMsg}
-            onChange={(e) => setCommitMsg(e.currentTarget.value)}
-            placeholder={`Update ${path || 'file'}`}
-            ref={commitInputRef}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                void onSave(commitMsg);
-                setConfirmSaveOpen(false);
-              }
-            }}
-          />
-          <Group justify="flex-end">
-            <Button onClick={() => setConfirmSaveOpen(false)} variant="subtle">Cancel</Button>
-            <Button onClick={async () => { await onSave(commitMsg); setConfirmSaveOpen(false); }} loading={saveState === 'loading'} disabled={!owner || !repo || !path}>
-              Commit
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-      <Modal opened={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete file?" withCloseButton={false}>
-        <Stack>
-          <div>Are you sure you want to delete <strong>{deleteTarget}</strong>? This cannot be undone.</div>
-          <Group justify="flex-end">
-            <Button onClick={() => setDeleteTarget(null)} variant="subtle">Cancel</Button>
-            <Button color="red" loading={saveState === 'loading'} onClick={async () => {
-              if (!owner || !repo || !deleteTarget || !sha) return;
-              try {
-                const { deleteFile } = await import('@/api/github');
-                await deleteFile(owner, repo, deleteTarget, branch || 'main', `Delete ${deleteTarget}`, sha);
-                notifications.show({ color: 'green', title: 'Deleted', message: deleteTarget });
-                setDeleteTarget(null);
-                setContent('');
-                setSha(null);
-                setOpenState('idle');
-              } catch (e) {
-                notifications.show({ color: 'red', title: 'Delete failed', message: e instanceof Error ? e.message : 'Error' });
-              }
-            }}>Delete</Button>
-          </Group>
-        </Stack>
-      </Modal>
+        commitMsg={commitMsg}
+        setCommitMsg={setCommitMsg}
+        onConfirm={() => { void onSave(commitMsg); setConfirmSaveOpen(false); }}
+        loading={saveState === 'loading'}
+        canConfirm={Boolean(owner && repo && path)}
+        commitInputRef={commitInputRef}
+        pathForPlaceholder={path}
+      />
+      <DeleteFileModal
+        opened={Boolean(deleteTarget)}
+        filePath={deleteTarget}
+        onCancel={() => setDeleteTarget(null)}
+        loading={saveState === 'loading'}
+        onConfirm={async () => {
+          if (!owner || !repo || !deleteTarget || !sha) return;
+          try {
+            const { deleteFile } = await import('@/api/github');
+            await deleteFile(owner, repo, deleteTarget, branch || 'main', `Delete ${deleteTarget}`, sha);
+            notifications.show({ color: 'green', title: 'Deleted', message: deleteTarget });
+            setDeleteTarget(null);
+            setContent('');
+            setSha(null);
+            setOpenState('idle');
+          } catch (e) {
+            notifications.show({ color: 'red', title: 'Delete failed', message: e instanceof Error ? e.message : 'Error' });
+          }
+        }}
+      />
       <CommandPalette
         opened={paletteOpen}
         onClose={() => setPaletteOpen(false)}

@@ -32,14 +32,12 @@ import { http } from '@codemirror/legacy-modes/mode/http';
 import { dockerFile } from '@codemirror/legacy-modes/mode/dockerfile';
 import { powerShell } from '@codemirror/legacy-modes/mode/powershell';
 import { oneDark } from '@codemirror/theme-one-dark';
+import type { EditorLanguage } from '@/shared/languages';
 
 type Props = {
   value: string;
   onChange: (next: string) => void;
-  language:
-    | 'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python' | 'xml' | 'sql'
-    | 'yaml' | 'toml' | 'php' | 'java' | 'go' | 'rust' | 'cpp' | 'sass' | 'shell' | 'ruby' | 'perl'
-    | 'ini' | 'nginx' | 'apache' | 'dockerfile' | 'powershell' | 'text';
+  language: EditorLanguage;
   readOnly?: boolean;
   softWrap?: boolean;
   height?: number | string | undefined;
