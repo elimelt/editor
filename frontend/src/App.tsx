@@ -120,6 +120,23 @@ export function App(): JSX.Element {
     void refreshUser();
   }, [refreshUser]);
 
+  // Reset file-specific UI when repo context changes
+  useEffect(() => {
+    setConfirmSaveOpen(false);
+    setDeleteTarget(null);
+    // close preview if not applicable
+    if (!(openState === 'loaded' && detectedLanguage === 'markdown')) {
+      setShowPreview(false);
+    }
+  }, [owner, repo, branch]);
+
+  // Keep preview state consistent with file type and load state
+  useEffect(() => {
+    if (!(openState === 'loaded' && detectedLanguage === 'markdown')) {
+      setShowPreview(false);
+    }
+  }, [openState, detectedLanguage]);
+
   const onOpen = useCallback(async (overridePath?: string) => {
     if (!owner || !repo || !(overridePath || path)) {
       setStatusKind('error');
@@ -223,6 +240,15 @@ export function App(): JSX.Element {
     setCommitMsg('');
     setStatusKind('info');
     setStatus('Logged out');
+    // Close overlays and reset transient UI state
+    setPaletteOpen(false);
+    setSettingsOpen(false);
+    setCreateOpen(false);
+    setConfirmSaveOpen(false);
+    setDeleteTarget(null);
+    setShowPreview(false);
+    setOpenState('idle');
+    setPath('');
   }, []);
 
   useEffect(() => {
@@ -295,7 +321,7 @@ export function App(): JSX.Element {
           </Group>
           <Group>
             <Button variant="light" onClick={() => setPaletteOpen(true)} title="Command palette (Cmd/Ctrl+K or Cmd/Ctrl+P)">Command palette</Button>
-            <Button variant="subtle" onClick={() => setSettingsOpen(true)} title="Settings (Cmd/Ctrl+,)">Settings</Button>
+            <Button variant="subtle" onClick={() => setSettingsOpen(true)} title="Settings (Cmd/Ctrl+,)" disabled={!user}>Settings</Button>
             {user ? (
               <>
                 <Badge variant="light" color="gray">{user.login}</Badge>
@@ -391,7 +417,7 @@ export function App(): JSX.Element {
         </Drawer>
       </Paper>
 
-      {(owner && repo) && (showTree || openState === 'loaded') && (
+      {(owner && repo) && (openState !== 'idle') && (showTree || openState === 'loaded') && (
         <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
           <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
             {() => (
@@ -501,7 +527,7 @@ export function App(): JSX.Element {
           />
           <Group justify="flex-end">
             <Button onClick={() => setConfirmSaveOpen(false)} variant="subtle">Cancel</Button>
-            <Button onClick={async () => { await onSave(commitMsg); setConfirmSaveOpen(false); }} loading={saveState === 'loading'}>
+            <Button onClick={async () => { await onSave(commitMsg); setConfirmSaveOpen(false); }} loading={saveState === 'loading'} disabled={!owner || !repo || !path}>
               Commit
             </Button>
           </Group>
