@@ -449,7 +449,7 @@ export function App(): JSX.Element {
       </Paper>
 
       {(owner && repo) && (showTree || openState === 'loaded') && (
-        <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
+        <div className={`section editor-layout ${showPreview && detectedLanguage === 'markdown' ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
           <Transition mounted={showTree} transition="fade" duration={160} timingFunction="ease-out" keepMounted>
             {(styles) => (
               <div style={{ ...styles }}>

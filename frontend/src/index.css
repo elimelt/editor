@@ -186,6 +186,17 @@ body {
   .editor-layout.tree-hidden.with-preview { grid-template-columns: 0 1fr 1fr; }
 }
 
+/* Medium screens: when tree is hidden and preview is enabled, show 2 columns side-by-side */
+@media (min-width: 720px) and (max-width: 959px) {
+  .editor-layout { grid-template-columns: 1fr; }
+  .editor-layout.tree-hidden.with-preview { grid-template-columns: 1fr 1fr; }
+}
+
+/* Ensure hidden tree does not occupy a grid slot on small/medium screens */
+@media (max-width: 959px) {
+  .editor-layout.tree-hidden > *:first-child { display: none; }
+}
+
 /* Animations wrapper styles for grid children */
 .editor-layout .transition-wrapper { display: contents; }
 .editor-layout { transition: grid-template-columns 220ms ease, gap 160ms ease; }
