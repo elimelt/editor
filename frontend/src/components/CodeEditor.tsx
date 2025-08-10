@@ -220,6 +220,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
       fontVariantLigatures: 'none',
       letterSpacing: '0',
+      position: 'static',
     },
     '.cm-gutters': {
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
