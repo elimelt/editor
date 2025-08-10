@@ -10,6 +10,7 @@
   --success: #28c17a;
   --warning: #f5a524;
   --shadow: rgba(0, 0, 0, 0.4);
+  --editor-panel-height: 600px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -184,12 +185,16 @@ body {
 /* Animations wrapper styles for grid children */
 .editor-layout .transition-wrapper { display: contents; }
 
-.filetree { overflow: auto; max-height: 40vh; }
-@media (min-width: 960px) { .filetree { max-height: 600px; } }
+.filetree, .editor-card, .preview-card {
+  height: var(--editor-panel-height);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-.editor-card, .preview-card { min-height: 40vh; }
+/* Removed min-heights to maintain equal panel heights */
 /* Ensure cards align nicely in the grid */
-.filetree, .editor-card, .preview-card { height: fit-content; }
+/* Panels have fixed equal heights via --editor-panel-height */
 
 /* Editor-only layout (tree hidden) */
 /* old editor-only layout retained for compatibility but unused */
@@ -198,6 +203,13 @@ body {
 .tree-header { margin-bottom: 10px; }
 .tree-title { font-weight: 600; letter-spacing: 0.2px; }
 .tree-scroll { border-top: none; padding-top: 0; }
+.tree-scroll .mantine-ScrollArea-viewport { height: 100%; }
+.preview-card .mantine-ScrollArea-viewport { height: 100%; }
+.cm-scroller { scrollbar-gutter: stable both-edges; }
+
+/* Editor panel fill */
+.editor-stack { height: 100%; }
+.editor-host { flex: 1; min-height: 0; }
 .tree-list { display: grid; gap: 2px; }
 .tree-branch { }
 .tree-row { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 8px; }

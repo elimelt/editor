@@ -20,7 +20,7 @@ type Props = {
   language: 'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python' | 'text';
   readOnly?: boolean;
   softWrap?: boolean;
-  height?: number | string;
+  height?: number | string | undefined;
   wrapColumn?: number; // max characters per line when wrapping (softWrap)
 };
 
@@ -136,12 +136,14 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
   // Editor theme to constrain height and optional wrap column for soft wrap
   const themeExtension = useMemo<Extension>(() => EditorView.theme({
     '&': {
-      height: typeof height === 'number' ? `${height}px` : String(height),
+      height: height == null ? '100%' : (typeof height === 'number' ? `${height}px` : String(height)),
       border: '1px solid var(--border)',
       borderRadius: '8px',
     },
     '.cm-scroller': {
       overflow: 'auto',
+      height: '100%',
+      WebkitOverflowScrolling: 'touch',
     },
     '.cm-content': softWrap ? {
       maxWidth: `${wrapColumn}ch`,

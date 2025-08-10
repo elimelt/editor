@@ -440,20 +440,22 @@ export function App(): JSX.Element {
           </Transition>
           {openState === 'loaded' && (
           <Paper withBorder p="md" radius="md" className="editor-card">
-            <Stack>
+            <Stack className="editor-stack">
               {detectedLanguage === 'markdown' && (
                 <Group justify="flex-end">
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
                 </Group>
               )}
-              <CodeEditor
-                value={content}
-                onChange={setContent}
-                language={detectedLanguage}
-                softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
-                height={600}
-                wrapColumn={96}
-              />
+              <div className="editor-host">
+                <CodeEditor
+                  value={content}
+                  onChange={setContent}
+                  language={detectedLanguage}
+                  softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+                  height={undefined as any}
+                  wrapColumn={96}
+                />
+              </div>
               <Group>
                 <Button onClick={openConfirmSave} loading={saveState === 'loading'} disabled={saveState === 'loading' || !sha}>
                   {saveState === 'loading' ? 'Saving…' : 'Save (Commit)'}
@@ -467,7 +469,7 @@ export function App(): JSX.Element {
               <div className="transition-wrapper">
                 {openState === 'loaded' && detectedLanguage === 'markdown' && showPreview && (
                   <Paper withBorder p="md" radius="md" className="preview-card">
-                    <ScrollArea h={600} type="auto">
+                    <ScrollArea className="preview-scroll" type="auto">
                       <MarkdownPreview markdown={content} />
                     </ScrollArea>
                   </Paper>
