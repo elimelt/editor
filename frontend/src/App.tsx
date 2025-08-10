@@ -12,6 +12,7 @@ import {
     listEditableRepos,
 } from '@/api/github';
   import { CodeEditor } from '@/components/CodeEditor';
+  import { FileTree } from '@/components/FileTree';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
@@ -296,23 +297,36 @@ export function App(): JSX.Element {
       </div>
 
       {openState === 'loaded' && (
-        <div className="card section">
-          <div className="field">
-            <label htmlFor="commit">Commit message</label>
-            <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
-          </div>
-          <div className="section">
-            <CodeEditor
-              value={content}
-              onChange={setContent}
-              language={detectedLanguage}
-              softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+        <div className="section" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
+          <div className="card" style={{ overflow: 'auto', maxHeight: 600 }}>
+            <FileTree
+              owner={owner}
+              repo={repo}
+              branch={branch}
+              onSelectFile={(p) => {
+                setPath(p);
+                void onOpen();
+              }}
             />
           </div>
-          <div className="row section">
-            <button className="btn primary" onClick={onSave} disabled={saveState === 'loading'}>
-              {saveState === 'loading' ? <span className="row"><span className="spinner" /> Saving…</span> : 'Save (Commit)'}
-            </button>
+          <div className="card">
+            <div className="field">
+              <label htmlFor="commit">Commit message</label>
+              <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
+            </div>
+            <div className="section">
+              <CodeEditor
+                value={content}
+                onChange={setContent}
+                language={detectedLanguage}
+                softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
+              />
+            </div>
+            <div className="row section">
+              <button className="btn primary" onClick={onSave} disabled={saveState === 'loading'}>
+                {saveState === 'loading' ? <span className="row"><span className="spinner" /> Saving…</span> : 'Save (Commit)'}
+              </button>
+            </div>
           </div>
         </div>
       )}

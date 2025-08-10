@@ -140,4 +140,28 @@ async function errorFromResponse(res: Response): Promise<HttpError> {
   return new HttpError(res.status, res.statusText, body);
 }
 
+export type GitHubDirEntry = {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  type: 'file' | 'dir' | 'symlink' | 'submodule';
+};
+
+export async function listDirectory(owner: string, repo: string, path: string, branch: string): Promise<GitHubDirEntry[]> {
+  const cleanPath = path.replace(/^\/+|\/+$/g, '');
+  const qs = new URLSearchParams();
+  if (branch) qs.set('ref', branch);
+  const suffix = cleanPath ? `/${encodeURIComponent(cleanPath)}` : '';
+  const res = await githubFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents${suffix}?${qs.toString()}`);
+  if (!res.ok) throw await errorFromResponse(res);
+  const data = await res.json();
+  if (Array.isArray(data)) {
+    return data as GitHubDirEntry[];
+  }
+  // If the API returns a file instead of an array, treat as single entry
+  if (data && data.type === 'file') return [data as GitHubDirEntry];
+  return [];
+}
+
 
