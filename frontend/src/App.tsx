@@ -9,15 +9,15 @@ import {
   fromBase64Unicode,
   clearToken,
   HttpError,
-    listEditableRepos,
+  listEditableRepos,
 } from '@/api/github';
-  import { CodeEditor } from '@/components/CodeEditor';
-  import { FileTree } from '@/components/FileTree';
-  import { MarkdownPreview } from '@/components/MarkdownPreview';
-  import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea } from '@mantine/core';
-  import { notifications } from '@mantine/notifications';
-  import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
-  import { CommandPalette } from '@/components/CommandPalette';
+import { CodeEditor } from '@/components/CodeEditor';
+import { FileTree } from '@/components/FileTree';
+import { MarkdownPreview } from '@/components/MarkdownPreview';
+import { Container, Paper, Group, Button, TextInput, SimpleGrid, Title, Divider, Switch, Stack, Badge, ScrollArea } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { addRecentFile, getPinnedRepos, togglePinnedRepo } from '@/shared/recent';
+import { CommandPalette } from '@/components/CommandPalette';
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 

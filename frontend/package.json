@@ -9,28 +9,29 @@
     "preview": "vite preview --port 8080"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "codemirror": "^6.0.1",
-    "@codemirror/state": "^6.4.1",
-    "@codemirror/view": "^6.28.4",
-    "@codemirror/language": "^6.10.3",
-    "@codemirror/search": "^6.5.7",
     "@codemirror/autocomplete": "^6.18.3",
-    "@codemirror/lint": "^6.7.1",
-    "@codemirror/lang-markdown": "^6.2.5",
-    "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-css": "^6.2.1",
     "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lang-markdown": "^6.2.5",
     "@codemirror/lang-python": "^6.1.6",
+    "@codemirror/language": "^6.10.3",
+    "@codemirror/lint": "^6.7.1",
+    "@codemirror/search": "^6.5.7",
+    "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/view": "^6.28.4",
+    "@emotion/react": "^11.14.0",
+    "@mantine/core": "^7.12.2",
+    "@mantine/hooks": "^7.12.2",
+    "@mantine/notifications": "^7.12.2",
+    "codemirror": "^6.0.1",
     "dompurify": "^3.1.6",
     "highlight.js": "^11.9.0",
     "marked": "^12.0.2",
-    "@mantine/core": "^7.12.2",
-    "@mantine/hooks": "^7.12.2",
-    "@mantine/notifications": "^7.12.2"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
@@ -39,5 +40,3 @@
     "vite": "^5.4.1"
   }
 }
-
-
