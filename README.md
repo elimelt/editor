@@ -1,7 +1,7 @@
-Modern GitHub Text Editor (minimal auth server)
+# Modern GitHub Text Editor (minimal auth server)
 
 
-This project is a minimal SPA frontend with a tiny server used strictly for GitHub OAuth. The SPA talks directly to the GitHub REST API to read and update file contents via commits.
+## This project is a minimal SPA frontend with a tiny server used strictly for GitHub OAuth. The SPA talks directly to the GitHub REST API to read and update file contents via commits.
 
 What's included
 - Frontend: React + Vite (TypeScript). Login, open a file, edit, save (commit).
