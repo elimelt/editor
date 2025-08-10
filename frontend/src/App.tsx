@@ -450,10 +450,10 @@ export function App(): JSX.Element {
 
       {(owner && repo) && (showTree || openState === 'loaded') && (
         <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
-          <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
+          <Transition mounted={showTree} transition="fade" duration={160} timingFunction="ease-out" keepMounted>
             {(styles) => (
-              <div style={styles}>
-                <Paper withBorder p="md" radius="md" className="filetree">
+              <div style={{ ...styles }}>
+                <Paper withBorder p="md" radius="md" className="filetree" style={{ ...styles }}>
                   <FileTree
                     owner={owner}
                     repo={repo}
@@ -500,10 +500,10 @@ export function App(): JSX.Element {
             </Stack>
           </Paper>
           )}
-          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="slide-left" duration={160} timingFunction="ease-out" keepMounted>
+          <Transition mounted={openState === 'loaded' && detectedLanguage === 'markdown' && showPreview} transition="fade" duration={160} timingFunction="ease-out" keepMounted>
             {(styles) => (
-              <div style={styles}>
-                <Paper withBorder p="md" radius="md" className="preview-card">
+              <div style={{ ...styles }}>
+                <Paper withBorder p="md" radius="md" className="preview-card" style={{ ...styles }}>
                   <ScrollArea className="preview-scroll" type="auto">
                     <MarkdownPreview markdown={content} />
                   </ScrollArea>

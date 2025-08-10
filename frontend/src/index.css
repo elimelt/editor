@@ -179,16 +179,17 @@ body {
   transition: grid-template-columns 160ms ease;
 }
 @media (min-width: 960px) {
-  .editor-layout { grid-template-columns: 260px 1fr; }
+  /* Always reserve 3 tracks on desktop; collapse unused ones to 0 for smooth transitions */
+  .editor-layout { grid-template-columns: 260px 1fr 0; }
   .editor-layout.with-preview { grid-template-columns: 260px 1fr 1fr; }
-  .editor-layout.tree-hidden { grid-template-columns: 1fr; }
+  .editor-layout.tree-hidden { grid-template-columns: 0 1fr 0; }
+  .editor-layout.tree-hidden.with-preview { grid-template-columns: 0 1fr 1fr; }
 }
 
 /* Animations wrapper styles for grid children */
 .editor-layout .transition-wrapper { display: contents; }
 .editor-layout { transition: grid-template-columns 220ms ease, gap 160ms ease; }
 .editor-layout > * { transition: transform 220ms ease, opacity 160ms ease; }
-.editor-layout.tree-hidden > *:first-child { display: none; }
 
 .filetree, .editor-card, .preview-card {
   height: var(--editor-panel-height);
