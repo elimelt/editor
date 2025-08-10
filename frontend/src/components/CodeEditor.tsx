@@ -43,10 +43,10 @@ type Props = {
   readOnly?: boolean;
   softWrap?: boolean;
   height?: number | string | undefined;
-  wrapColumn?: number; // max characters per line when wrapping (softWrap)
+  wrapColumn?: number; // optional max characters per line when wrapping (softWrap)
 };
 
-export function CodeEditor({ value, onChange, language, readOnly = false, softWrap = false, height = '70vh', wrapColumn = 96 }: Props): JSX.Element {
+export function CodeEditor({ value, onChange, language, readOnly = false, softWrap = false, height = '70vh', wrapColumn }: Props): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
@@ -201,7 +201,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
       height: '100%',
       WebkitOverflowScrolling: 'touch',
     },
-    '.cm-content': softWrap ? {
+    '.cm-content': softWrap && typeof wrapColumn === 'number' ? {
       maxWidth: `${wrapColumn}ch`,
       margin: '0 auto',
     } : {},

@@ -489,7 +489,7 @@ export function App(): JSX.Element {
                   language={detectedLanguage}
                   softWrap={detectedLanguage === 'markdown' || detectedLanguage === 'text'}
                   height={undefined as any}
-                  wrapColumn={96}
+                  wrapColumn={detectedLanguage === 'markdown' && showPreview ? undefined : 96}
                 />
               </div>
               <Group>
