@@ -258,7 +258,7 @@ body {
 .preview-inner { min-height: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: color-mix(in oklab, var(--panel) 85%, transparent); }
 .preview-scroll { height: 100%; }
 /* Keep only the outer scrollbar for preview */
-.preview-card .md-preview .filetree{ overflow: scroll; }
+.preview-card .editor-card .filetree{ overflow: scroll; }
 .editor-layout.tree-hidden .span-full { grid-column: 1 / -1; }
 .tree-list { display: grid; gap: 1px; padding-bottom: 8px; }
 .tree-branch { margin-left: 8px; }
