@@ -300,8 +300,8 @@ export function App(): JSX.Element {
       </div>
 
       {openState === 'loaded' && (
-        <div className="section" style={{ display: 'grid', gridTemplateColumns: detectedLanguage === 'markdown' && showPreview ? '280px 1fr 1fr' : '280px 1fr', gap: 16 }}>
-          <div className="card" style={{ overflow: 'auto', maxHeight: 600 }}>
+        <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
+          <div className="card filetree">
             <FileTree
               owner={owner}
               repo={repo}
@@ -312,7 +312,7 @@ export function App(): JSX.Element {
               }}
             />
           </div>
-          <div className="card">
+          <div className="card editor-card">
             <div className="field">
               <label htmlFor="commit">Commit message</label>
               <input id="commit" className="input" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} placeholder="e.g. Update README" />
@@ -340,7 +340,7 @@ export function App(): JSX.Element {
             </div>
           </div>
           {detectedLanguage === 'markdown' && showPreview && (
-            <div className="card">
+            <div className="card preview-card">
               <MarkdownPreview markdown={content} />
             </div>
           )}
