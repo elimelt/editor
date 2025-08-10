@@ -203,6 +203,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     '.cm-scroller': {
       overflow: 'auto',
       height: '100%',
+      position: 'static',
       WebkitOverflowScrolling: 'touch',
     },
     '.cm-content': {
