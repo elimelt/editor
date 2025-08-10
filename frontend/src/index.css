@@ -178,4 +178,14 @@ body {
 
 .editor-card, .preview-card { min-height: 40vh; }
 
+/* Editor-only layout (tree hidden) */
+.editor-only {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 960px) {
+  .editor-only.with-preview { grid-template-columns: 1fr 1fr; }
+}
+
 

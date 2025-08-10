@@ -59,6 +59,7 @@ export function App(): JSX.Element {
 
   const [showPreview, setShowPreview] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [showTree, setShowTree] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newPath, setNewPath] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -227,6 +228,10 @@ export function App(): JSX.Element {
         e.preventDefault();
         setPaletteOpen(true);
       }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        setShowTree((v) => !v);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -236,7 +241,14 @@ export function App(): JSX.Element {
     <Container size="lg" py="lg">
       <Paper withBorder p="md" radius="md" className="header">
         <Group justify="space-between" wrap="wrap">
-          <Title order={2}>GitHub Editor</Title>
+          <Group gap="sm">
+            <Title order={2}>GitHub Editor</Title>
+            {openState === 'loaded' && (
+              <Button variant="light" onClick={() => setShowTree((v) => !v)} title="Toggle file tree (Cmd/Ctrl+B)">
+                {showTree ? 'Hide files' : 'Show files'}
+              </Button>
+            )}
+          </Group>
           <Group>
             <Button variant="light" onClick={() => setPaletteOpen(true)} title="Command palette (Cmd/Ctrl+K)">Command palette</Button>
             {user ? (
@@ -331,20 +343,22 @@ export function App(): JSX.Element {
       </Paper>
 
       {openState === 'loaded' && (
-        <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
-          <Paper withBorder p="md" radius="md" className="filetree">
-            <FileTree
-              owner={owner}
-              repo={repo}
-              branch={branch}
-              onSelectFile={(p) => {
-                setPath(p);
-                void onOpen(p);
-              }}
-              onCreate={() => setCreateOpen(true)}
-              onDelete={(p) => setDeleteTarget(p)}
-            />
-          </Paper>
+        <div className={`section ${showTree ? 'editor-layout' : 'editor-only'} ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
+          {showTree && (
+            <Paper withBorder p="md" radius="md" className="filetree">
+              <FileTree
+                owner={owner}
+                repo={repo}
+                branch={branch}
+                onSelectFile={(p) => {
+                  setPath(p);
+                  void onOpen(p);
+                }}
+                onCreate={() => setCreateOpen(true)}
+                onDelete={(p) => setDeleteTarget(p)}
+              />
+            </Paper>
+          )}
           <Paper withBorder p="md" radius="md" className="editor-card">
             <Stack>
               <TextInput label="Commit message" id="commit" value={commitMsg} onChange={(e) => setCommitMsg(e.currentTarget.value)} placeholder="e.g. Update README" />
