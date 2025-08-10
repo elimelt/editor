@@ -30,6 +30,9 @@ console.log('Auth server config:', {
   FRONTEND_ORIGIN,
   REDIRECT_URI,
   OAUTH_SCOPES,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  PORT,
 });
 
 app.get('/api/health', (req, res) => {
