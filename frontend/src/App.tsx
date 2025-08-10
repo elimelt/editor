@@ -88,6 +88,8 @@ export function App(): JSX.Element {
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const commitInputRef = useRef<HTMLInputElement | null>(null);
 
+  const fileName = useMemo(() => (path ? path.split('/').pop() || path : ''), [path]);
+
   useEffect(() => {
     const token = readAccessTokenFromHashOrSession();
     setTokenPresent(Boolean(token));
@@ -440,7 +442,7 @@ export function App(): JSX.Element {
 
       {(owner && repo) && (showTree || openState === 'loaded') && (
         <div className={`section editor-layout ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''} ${!showTree ? 'tree-hidden' : ''}`}>
-          <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out">
+          <Transition mounted={showTree} transition="slide-right" duration={160} timingFunction="ease-out" keepMounted>
             {(styles) => (
               <div style={styles}>
                 <Paper withBorder p="md" radius="md" className="filetree">
@@ -465,6 +467,11 @@ export function App(): JSX.Element {
               {detectedLanguage === 'markdown' && (
                 <Group justify="flex-end">
                   <Switch checked={showPreview} onChange={(e) => setShowPreview(e.currentTarget.checked)} label="Split preview" />
+                </Group>
+              )}
+              {openState === 'loaded' && !!fileName && (
+                <Group justify="space-between" className="tree-header">
+                  <strong className="tree-title">{fileName}</strong>
                 </Group>
               )}
               <div className={`editor-split ${detectedLanguage === 'markdown' && showPreview ? 'with-preview' : ''}`}>
