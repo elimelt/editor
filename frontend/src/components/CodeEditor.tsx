@@ -12,12 +12,34 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import { python } from '@codemirror/lang-python';
+import { xml } from '@codemirror/lang-xml';
+import { sql } from '@codemirror/lang-sql';
+import { yaml } from '@codemirror/lang-yaml';
+// No official @codemirror/lang-toml; use legacy stream mode via ini for basic highlighting
+import { php } from '@codemirror/lang-php';
+import { java } from '@codemirror/lang-java';
+import { go } from '@codemirror/lang-go';
+import { rust } from '@codemirror/lang-rust';
+import { cpp } from '@codemirror/lang-cpp';
+import { sass } from '@codemirror/lang-sass';
+import { StreamLanguage } from '@codemirror/language';
+import { shell } from '@codemirror/legacy-modes/mode/shell';
+import { ruby } from '@codemirror/legacy-modes/mode/ruby';
+import { perl } from '@codemirror/legacy-modes/mode/perl';
+import { toml as tomlLegacy } from '@codemirror/legacy-modes/mode/toml';
+import { nginx } from '@codemirror/legacy-modes/mode/nginx';
+import { http } from '@codemirror/legacy-modes/mode/http';
+import { dockerFile } from '@codemirror/legacy-modes/mode/dockerfile';
+import { powerShell } from '@codemirror/legacy-modes/mode/powershell';
 import { oneDark } from '@codemirror/theme-one-dark';
 
 type Props = {
   value: string;
   onChange: (next: string) => void;
-  language: 'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python' | 'text';
+  language:
+    | 'markdown' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'python' | 'xml' | 'sql'
+    | 'yaml' | 'toml' | 'php' | 'java' | 'go' | 'rust' | 'cpp' | 'sass' | 'shell' | 'ruby' | 'perl'
+    | 'ini' | 'nginx' | 'apache' | 'dockerfile' | 'powershell' | 'text';
   readOnly?: boolean;
   softWrap?: boolean;
   height?: number | string | undefined;
@@ -43,6 +65,40 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
         return json();
       case 'python':
         return python();
+      case 'xml':
+        return xml();
+      case 'sql':
+        return sql();
+      case 'yaml':
+        return yaml();
+      case 'toml':
+        return StreamLanguage.define(tomlLegacy);
+      case 'php':
+        return php();
+      case 'java':
+        return java();
+      case 'go':
+        return go();
+      case 'rust':
+        return rust();
+      case 'cpp':
+        return cpp();
+      case 'sass':
+        return sass();
+      case 'shell':
+        return StreamLanguage.define(shell);
+      case 'ruby':
+        return StreamLanguage.define(ruby);
+      case 'perl':
+        return StreamLanguage.define(perl);
+      case 'nginx':
+        return StreamLanguage.define(nginx);
+      case 'apache':
+        return StreamLanguage.define(http);
+      case 'dockerfile':
+        return StreamLanguage.define(dockerFile);
+      case 'powershell':
+        return StreamLanguage.define(powerShell);
       default:
         return [];
     }
