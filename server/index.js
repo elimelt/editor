@@ -11,7 +11,6 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cookieParser());
 
-
 const PORT = process.env.PORT || 3000;
 const CLIENT_ID = process.env.GH_CLIENT_ID;
 const CLIENT_SECRET = process.env.GH_CLIENT_SECRET;

@@ -5,7 +5,6 @@
   const logoutBtn = document.getElementById('logout-btn');
   const userInfo = document.getElementById('user-info');
   const statusEl = document.getElementById('status');
-
   const ownerEl = document.getElementById('owner');
   const repoEl = document.getElementById('repo');
   const branchEl = document.getElementById('branch');
