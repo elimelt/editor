@@ -66,17 +66,9 @@ export function App(): JSX.Element {
 
   const layoutMode = useLayoutMode(showTree, showPreview, detectedLanguage);
 
-  // token bootstrap handled by useEditorController
-
-  // (persist handled by usePersistentBoolean)
-
-  // user refresh handled by useEditorController
-
-  // Sync repo/file selection with URL for shareable links and browser history
   const isRestoringFromHistoryRef = useRef(false);
   const pendingOpenPathRef = useRef<string | null>(null);
 
-  // Parse URL on first mount and restore state
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const o = params.get('owner') || '';
@@ -92,16 +84,13 @@ export function App(): JSX.Element {
         setPath(p);
         pendingOpenPathRef.current = p;
       } else {
-        // Repo context without a file
         setOpenState('loaded');
       }
-      // Clear the flag after scheduling React state updates
       queueMicrotask(() => { isRestoringFromHistoryRef.current = false; });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // If a file open is pending from URL/history, trigger it once state and token are ready
   useEffect(() => {
     if (!pendingOpenPathRef.current) return;
     if (!owner || !repo) return;
@@ -111,7 +100,6 @@ export function App(): JSX.Element {
     void onOpen(toOpen);
   }, [owner, repo, branch, tokenPresent, onOpen]);
 
-  // Update URL when selection changes (owner/repo/branch/path)
   useEffect(() => {
     if (isRestoringFromHistoryRef.current) return;
     if (!owner || !repo) return;
@@ -127,7 +115,6 @@ export function App(): JSX.Element {
     }
   }, [owner, repo, branch, path]);
 
-  // Handle browser back/forward navigation
   useEffect(() => {
     const onPop = () => {
       const params = new URLSearchParams(window.location.search);
@@ -157,11 +144,9 @@ export function App(): JSX.Element {
     return () => window.removeEventListener('popstate', onPop);
   }, [onOpen, setOwner, setRepo, setBranch, setPath, setOpenState, setContent, setSha]);
 
-  // Reset file-specific UI when repo context changes
   useEffect(() => {
     setConfirmSaveOpen(false);
     setDeleteTarget(null);
-    // close preview if not applicable
     if (!(openState === 'loaded' && detectedLanguage === 'markdown')) {
       setShowPreview(false);
     }
@@ -169,7 +154,6 @@ export function App(): JSX.Element {
 
   usePreviewGuards(openState, detectedLanguage, setShowPreview);
 
-  // Enforce allowed layouts: editor-only OR editor+tree OR editor+preview
   useEffect(() => {
     if (showPreview) {
       setShowTree(false);
@@ -181,8 +165,6 @@ export function App(): JSX.Element {
     }
   }, [showTree]);
 
-  // onOpen/onSave provided by useEditorController
-
   const openConfirmSave = useCallback(() => {
     if (openState !== 'loaded' || !sha) return;
     setCommitMsg((prev) => (prev && prev.trim()) ? prev : `Update ${path}`);
@@ -190,17 +172,12 @@ export function App(): JSX.Element {
   }, [openState, sha, path]);
 
   const onLogoutAndReset = useCallback(() => {
-    // useEditorController handles token/content state reset; here we close UI overlays
-    // and call user logout to clear token
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    try { /* ensure sequence even if an error happens */ } finally {
-      setPaletteOpen(false);
-      setSettingsOpen(false);
-      setCreateOpen(false);
-      setConfirmSaveOpen(false);
-      setDeleteTarget(null);
-      setShowPreview(false);
-    }
+    setPaletteOpen(false);
+    setSettingsOpen(false);
+    setCreateOpen(false);
+    setConfirmSaveOpen(false);
+    setDeleteTarget(null);
+    setShowPreview(false);
   }, []);
 
   useWarnOnUnload(dirty);
@@ -219,8 +196,6 @@ export function App(): JSX.Element {
     isMarkdownPreviewAvailable: openState === 'loaded' && detectedLanguage === 'markdown',
   });
 
-  // (modifier/focus handled by useModifierAndEditorFocus)
-
   return (
     <Container size="lg" py="lg">
       <HeaderBar
@@ -233,8 +208,6 @@ export function App(): JSX.Element {
         onOpenPalette={() => setPaletteOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
       />
-
-      {/* spacing managed by Paper margins; removed hr to reduce visual clutter */}
 
       <Paper withBorder p="md" radius="md" mt="md">
         {!!user && (
@@ -285,7 +258,6 @@ export function App(): JSX.Element {
 
       {(owner && repo) && (
         <div className={`section editor-layout ${layoutMode}`}>
-          {/* File tree slot */}
           <div className="slot-tree">
             <Paper withBorder p="md" radius="md" className="filetree">
               <FileTree
@@ -302,7 +274,6 @@ export function App(): JSX.Element {
             </Paper>
           </div>
 
-          {/* Editor slot */}
           <div className="slot-editor">
             <EditorPanel
               open={openState === 'loaded'}
@@ -320,7 +291,6 @@ export function App(): JSX.Element {
             />
           </div>
 
-          {/* Preview slot */}
           <div className="slot-preview">
             <PreviewPanel open={openState === 'loaded' && layoutMode === 'mode-preview'} markdown={content} />
           </div>
@@ -328,7 +298,6 @@ export function App(): JSX.Element {
       )}
 
       <StatusBar kind={statusKind} text={status} />
-      {/* Keyboard shortcut hints: shown when modifier is held outside editor */}
       <ShortcutHints
         show={modifierHeld && !focusInEditor}
         showToggleFiles={openState === 'loaded'}

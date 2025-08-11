@@ -60,7 +60,6 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
     }
   }, [opened, owner, repo, branch]);
 
-  // Debounced global repo search
   useEffect(() => {
     if (!opened) return;
     const qstr = q.trim();
@@ -149,7 +148,6 @@ export function CommandPalette({ opened, onClose, onOpenFile, onOpenRepo, onOpen
           <Badge variant="light" onClick={() => { (document.activeElement as HTMLElement)?.blur(); }} style={{ cursor: 'pointer' }}>Dismiss</Badge>
           <Badge variant="light" onClick={() => { const ev = new CustomEvent('open-settings'); window.dispatchEvent(ev); }} style={{ cursor: 'pointer' }}>Open settings</Badge>
         </Group>
-        {/* Global repository search results */}
         {repoResults.length > 0 && (
           <>
             <Group gap="xs" align="center">

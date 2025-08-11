@@ -187,31 +187,25 @@ export function useEditorController() {
   }, []);
 
   return {
-    // auth/user
     tokenPresent,
     user,
     userState,
     refreshUser,
     onLogout,
-    // repo & file context
     owner, setOwner,
     repo, setRepo,
     branch, setBranch,
     path, setPath,
-    // content & commit
     content, setContent,
     sha, setSha,
     commitMsg, setCommitMsg,
-    // states & status
     openState, setOpenState,
     saveState, setSaveState,
     status, setStatus,
     statusKind, setStatusKind,
-    // repos list and actions
     repos, setRepos,
     repoQuery, setRepoQuery,
     selectRepo,
-    // operations
     onOpen,
     onSave,
   } as const;

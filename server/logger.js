@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 
-// Log level mapping inspired by pino/bunyan
 const LOG_LEVELS = {
   trace: 10,
   debug: 20,
@@ -29,7 +28,6 @@ function redactValue(value) {
   return '[REDACTED]';
 }
 
-// Keys that should be redacted regardless of case or nesting
 const REDACT_KEYS = [
   'authorization',
   'cookie',
@@ -71,7 +69,6 @@ function safeSerialize(input, depth = 0, seen = new WeakSet()) {
       output[key] = redactValue(value);
       continue;
     }
-    // Avoid logging the entire req/res objects
     if (key === 'req' || key === 'res' || key === 'request' || key === 'response') {
       output[key] = '[omitted]';
       continue;
@@ -89,11 +86,9 @@ function log(level, message, meta) {
     msg: message,
     ...safeSerialize(meta),
   };
-  // Use stdout for all levels; infra can route based on level
   try {
     process.stdout.write(`${JSON.stringify(entry)}\n`);
   } catch {
-    // Fallback to console if JSON stringify fails unexpectedly
     // eslint-disable-next-line no-console
     console.log(entry);
   }
@@ -141,7 +136,7 @@ function requestLoggingMiddleware(req, res, next) {
     logger.info('request_completed', {
       requestId,
       method,
-      path, // path only, avoid logging query and sensitive params
+      path,
       statusCode: res.statusCode,
       durationMs: Math.round(durationMs),
       ip: req.ip,

@@ -1,5 +1,3 @@
-/* Minimal GitHub OAuth server: strictly for auth */
-
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
@@ -61,6 +59,17 @@ app.get('/api/auth/login', (req, res) => {
     maxAge: 10 * 60 * 1000, // 10 minutes
     path: '/',
   });
+  // Preserve return_to query (e.g., ?owner=...&repo=...&path=...) if provided
+  const returnTo = typeof req.query.return_to === 'string' ? req.query.return_to : '';
+  if (returnTo && returnTo.length <= 1024) {
+    res.cookie('oauth_return_to', returnTo, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isSecure,
+      maxAge: 10 * 60 * 1000,
+      path: '/',
+    });
+  }
   const authorizeUrl = new URL('https://github.com/login/oauth/authorize');
   authorizeUrl.searchParams.set('client_id', CLIENT_ID);
   authorizeUrl.searchParams.set('redirect_uri', REDIRECT_URI);
@@ -97,7 +106,6 @@ app.get('/api/auth/callback', async (req, res) => {
       return res.status(400).send('Invalid OAuth state or missing code');
     }
 
-    // Exchange code → token
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: {
@@ -142,12 +150,22 @@ app.get('/api/auth/callback', async (req, res) => {
       return res.status(502).send('No access token returned');
     }
 
-    // Clear state cookie
     res.clearCookie('oauth_state', { path: '/' });
 
-    // Hand off token to SPA via URL hash (one-time)
+    // Restore return_to query string if present
+    const returnToCookie = req.cookies.oauth_return_to;
+    if (returnToCookie) {
+      res.clearCookie('oauth_return_to', { path: '/' });
+    }
+
     const redirectUrl = new URL(FRONTEND_ORIGIN);
-    redirectUrl.hash = `access_token=${encodeURIComponent(tokenJson.access_token)}`;
+    const hashParts = [`access_token=${encodeURIComponent(tokenJson.access_token)}`];
+    if (returnToCookie && typeof returnToCookie === 'string') {
+      // Ensure it starts with '?' and is a safe subset
+      const qs = returnToCookie.startsWith('?') ? returnToCookie : `?${returnToCookie}`;
+      redirectUrl.search = qs;
+    }
+    redirectUrl.hash = hashParts.join('&');
     logger.info('oauth_success_redirect', {
       requestId: req.id,
       redirectHost: redirectUrl.host,
@@ -162,8 +180,6 @@ app.get('/api/auth/callback', async (req, res) => {
   }
 });
 
-// Express error handler (fallback)
-// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   logger.error('http_request_error', {
     requestId: req?.id,
@@ -178,14 +194,12 @@ app.listen(PORT, () => {
   logger.info('server_listening', { port: PORT });
 });
 
-// Global handlers
 process.on('unhandledRejection', (reason) => {
   logger.error('unhandled_rejection', { error: serializeError(reason) });
 });
 
 process.on('uncaughtException', (err) => {
   logger.error('uncaught_exception', { error: serializeError(err) });
-  // Allow container/orchestrator to restart the process
   process.exit(1);
 });
 

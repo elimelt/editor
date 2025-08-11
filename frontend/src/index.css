@@ -212,12 +212,7 @@ body {
 }
 .editor-body { min-height: 0; }
 
-/* Removed min-heights to maintain equal panel heights */
-/* Ensure cards align nicely in the grid */
-/* Panels have fixed equal heights via --editor-panel-height */
-
-/* Editor-only layout (tree hidden) */
-/* old editor-only layout retained for compatibility but unused */
+ 
 
 /* File tree styling */
 .tree-header { margin-bottom: 6px; }
@@ -227,9 +222,7 @@ body {
 .tree-scroll > .mantine-ScrollArea-root { flex: 1; height: 100%; }
 .tree-scroll .mantine-ScrollArea-viewport { height: 100%; }
 .preview-card .mantine-ScrollArea-viewport { height: 100%; }
-/* Ensure ScrollArea fills tree panel for consistent scrolling */
-.tree-scroll { border-top: none; padding-top: 0; flex: 1; min-height: 0; display: flex; }
-.tree-scroll .mantine-ScrollArea-root { flex: 1; height: 100%; }
+ 
 
 /* Editor panel fill */
 .editor-stack { height: 100%; min-height: 0; }
@@ -249,7 +242,6 @@ body {
 .tree-list { display: grid; gap: 1px; padding-bottom: 16px; }
 .tree-branch { margin-left: 8px; }
 .tree-branch.root { margin-left: 0; }
-/* .tree-branch reserved for future overrides */
 .tree-row { display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 6px; }
 .tree-row:hover { background: color-mix(in oklab, var(--panel) 85%, transparent); }
 .tree-row.file .tree-name { font-weight: 500; }

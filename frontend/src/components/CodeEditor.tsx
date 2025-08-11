@@ -162,7 +162,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hostRef]);
 
-  // Update language/flags
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -177,7 +176,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     if (effects.length) view.dispatch({ effects });
   }, [langExt, baseExtensions, readOnly, softWrap]);
 
-  // External value updates
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -187,7 +185,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     }
   }, [value]);
 
-  // Editor theme to constrain height and optional wrap column for soft wrap
   const themeExtension = useMemo<Extension>(() => EditorView.theme({
     '&': {
       height: height == null ? '100%' : (typeof height === 'number' ? `${height}px` : String(height)),
@@ -216,7 +213,6 @@ export function CodeEditor({ value, onChange, language, readOnly = false, softWr
     '.cm-gutters': {},
   }), [height, softWrap, wrapColumn]);
 
-  // Attach theme extension
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;

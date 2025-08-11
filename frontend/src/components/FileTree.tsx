@@ -45,7 +45,6 @@ export function FileTree({ owner, repo, branch, rootPath = '', onSelectFile, onC
   }, [owner, repo, branch, rootPath]);
 
   useEffect(() => {
-    // Reset tree on repo change
     setRoot({ name: '/', path: '', type: 'dir', expanded: true, loaded: false });
   }, [owner, repo, branch, rootPath]);
 
@@ -163,7 +162,6 @@ function filterTreeInPlace(node: Node, q: string): boolean {
   const children = node.children || [];
   const kept: Node[] = [];
   for (const child of children) {
-    // Ensure directories are considered matches if they contain matches
     const match = filterTreeInPlace(child, q) || child.name.toLowerCase().includes(q);
     if (match) kept.push(child);
   }

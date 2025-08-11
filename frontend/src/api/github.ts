@@ -35,8 +35,6 @@ async function githubFetch(path: string, options: RequestInit = {}): Promise<Res
   return fetchWithRetry(`https://api.github.com${path}`, {
     ...options,
     headers,
-    // Secondary rate limits can be transient
-    // Let fetchWithRetry handle simple retry-on-403/429
     retries: 1,
   } as any);
 }
@@ -62,7 +60,6 @@ export type GitHubRepo = {
 };
 
 export async function listEditableRepos(limit: number = 30): Promise<GitHubRepo[]> {
-  // Fetch up to 100 recently updated repos the user has access to, then filter by push permission
   const search = new URLSearchParams({
     per_page: '100',
     sort: 'updated',
@@ -165,7 +162,10 @@ export async function deleteFile(
 }
 
 export function loginRedirect() {
-  window.location.href = `${API_BASE}/auth/login`;
+  const returnTo = window.location.search || '';
+  const url = new URL(`${API_BASE}/auth/login`, window.location.origin);
+  if (returnTo) url.searchParams.set('return_to', returnTo);
+  window.location.href = url.toString();
 }
 
 export function toBase64Unicode(str: string): string {
@@ -219,7 +219,6 @@ export async function listDirectory(owner: string, repo: string, path: string, b
   if (Array.isArray(data)) {
     return data as GitHubDirEntry[];
   }
-  // If the API returns a file instead of an array, treat as single entry
   if (data && data.type === 'file') return [data as GitHubDirEntry];
   return [];
 }
